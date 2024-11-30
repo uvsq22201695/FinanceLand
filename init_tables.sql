@@ -16,6 +16,13 @@ BEGIN
 END;
 /
 
+-- Ajout des séquences
+
+CREATE SEQUENCE sequence_id_attraction
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
 -- Création de la table 'parc'
 CREATE TABLE parc (
     id_parc NUMBER PRIMARY KEY,
@@ -138,3 +145,50 @@ CREATE TABLE billet (
     CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),
     CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif)
 );
+
+-- Insertions
+
+-- Insertions parc
+
+INSERT INTO parc values (1, 'Phantasialand', 1967-04-30, 28, 'Allemagne', 'Brülh');
+INSERT INTO parc values (2, 'Europa-Park', 1975-07-12, 95, 'Allemagne', 'Rust');
+INSERT INTO parc values (3, 'Disneyland Paris', 1992-04-12, 2230, 'France', 'Marne-la-Vallée');
+INSERT INTO parc values (4, 'Parc Astérix', 1989-04-30, 35, 'France', 'Plailly');
+INSERT INTO parc values (5, 'Futuroscope', 1987-11-31, 60, 'France', 'Chasseneuil-du-Poitou');
+INSERT INTO parc values (6, 'Walibi Rhône-Alpes', 1979-06-04, 35, 'France', 'Les Avenières');
+INSERT INTO parc values (7, 'Walibi Sud-Ouest', 1999-06-04, 30, 'France', 'Roquefort');
+INSERT INTO parc values (8, 'Alton Towers', 1980-04-04, 200, 'Royaume-Uni', 'Alton');
+INSERT INTO parc values (9, 'Thorpe Park', 1979-05-24, 200, 'Royaume-Uni', 'Chertsey');
+INSERT INTO parc values (10, 'PortAventura', 1995-05-01, 119, 'Espagne', 'Salou');
+INSERT INTO parc values (11, 'Disneyland Resort', 1955-07-17, 486, 'États-Unis', 'Anaheim');
+INSERT INTO parc values (12, 'Universal Studios Hollywood', 1964-07-15, 415, 'États-Unis', 'Los Angeles');
+INSERT INTO parc values (13, 'Six Flags Magic Mountain', 1971-05-29, 262, 'États-Unis', 'Valencia');
+INSERT INTO parc values (14, 'Cedar Point', 1870-05-17, 200, 'États-Unis', 'Sandusky');
+
+-- Insertions attractions
+
+-- Phantasialand
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Black Mamba', 2006-04-01, 'Bolliger & Mabillard', 80, 1500, 4.5, 27, 2, 32, 6, 779, 'Inverted Coaster', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Taron', 2016-06-30, 'Intamin', 117, 1200, 4.5, 30, 2, 32, 0, 1349, 'Launched Coaster', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Raik', 2016-06-30, 'Gerstlauer', 60, 1000, 3.5, 25, 2, 16, 0, 682, 'Family Coaster', 2, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Chiapas', 2014-04-01, 'Intamin', 53, 1200, 3.5, 20, 2, 20, 0, 850, 'Log Flume', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Colorado Adventure', 1996-04-01, 'Intamin', 45, 1200, 3.5, 20, 2, 20, 0, 1180, 'Mine Train', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Winja''s Fear & Force', 2006-04-01, 'Maurer AG', 40, 1200, 3.5, 20, 2, 20, 0, 1180, 'Spinning Coaster', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Maus au Chocolat', 2011-04-01, 'Mack Rides', 10, 1200, 0, 0, 9, 12, 0, 350, 'Interactive Dark Ride', 9, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'F.L.Y.', 2020-09-17, 'Vekoma', 100, 1200, 4.5, 40, 2, 16, 0, 1230, 'Flying Coaster', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'River Quest', 2002-04-01, 'Intamin', 20, 1200, 0, 22, 18, 9, 0, 440, 'River Rapids', 6, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tikal', 1999-04-01, 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Talokan', 1999-04-01, 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
+
+-- Europa-Park
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Blue Fire Megacoaster', 2009-04-01, 'Mack Rides', 100, 1200, 4, 38, 2, 20, 0, 1050, 'Launched Coaster', 3, 'Ouvert', 2);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Silver Star', 2002-04-01, 'Bolliger & Mabillard', 130, 1200, 4, 73, 3, 36, 0, 1620, 'Hyper Coaster', 3, 'Ouvert', 2);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Wodan Timbur Coaster', 2012-04-01, 'Great Coasters International', 100, 1200, 4, 40, 2, 24, 0, 1050, 'Wooden Coaster', 3, 'Ouvert', 2);
+
+-- Disneyland Paris
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Hyperspace Mountain', 2005-04-01, 'Vekoma', 70, 1200, 3.5, 32, 2, 24, 2, 2000, 'Launched Coaster', 3, 'Ouvert', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Big Thunder Mountain', 1992-04-01, 'Vekoma', 60, 1200, 3.5, 30, 2, 30, 0, 2000, 'Mine Train', 3, 'Ouvert', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pirates of the Caribbean', 1992-04-01, 'Intamin', 30, 3400, 1.95, 10, 50, 24, 0, 1000, 'Dark Ride', 10, 'Ouvert', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Phantom Manor', 1992-04-01, 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 15, 'Ouvert', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', 1993-04-01, 'Intamin', 60, 1200, 3.5, 25, 2, 20, 0, 1200, 'Mine Train', 3, 'Ouvert', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Avengers Assemble', 2021-06-17, 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 9, 'Ouvert', 3);

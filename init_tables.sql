@@ -46,19 +46,16 @@ CREATE TABLE parc (
     superficie NUMBER check ( superficie > 0 ),
     pays VARCHAR2(100),
     ville VARCHAR2(100)
-    constraint chk_parc_superficie CHECK (superficie > 0 or superficie is null)
 );
 
 -- Création de la table 'tarif'
 CREATE TABLE tarif (
     nom_tarif VARCHAR2(100) PRIMARY KEY,
-    prix NUMBER,
-    duree_en_jour NUMBER,
+    prix NUMBER check ( prix >= 0 ),
+    duree_en_jour NUMBER check ( duree_en_jour > 0 ),
     reduction NUMBER,
     date_debut DATE,
-    date_fin
-    constraint chk_tarif_prix CHECK (prix >= 0),
-    constraint chk_tarif_duree CHECK (duree_en_jour > 0),
+    date_fin DATE,
     constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
 );
 
@@ -202,27 +199,27 @@ INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis
 -- Insertions attractions
 
 -- Phantasialand
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Black Mamba', DATE '2006-04-01', 'Bolliger & Mabillard', 80, 1500, 4.5, 27, 2, 32, 6, 779, 'Inverted Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Taron', DATE '2016-06-30', 'Intamin', 117, 1200, 4.5, 30, 2, 32, 0, 1349, 'Launched Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Raik', DATE '2016-06-30', 'Gerstlauer', 60, 1000, 3.5, 25, 2, 16, 0, 682, 'Family Coaster', 2, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Chiapas', DATE '2014-04-01', 'Intamin', 53, 1200, 3.5, 20, 2, 20, 0, 850, 'Log Flume', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Colorado Adventure', DATE '1996-04-01', 'Intamin', 45, 1200, 3.5, 20, 2, 20, 0, 1180, 'Mine Train', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Winja''s Fear & Force', DATE '2006-04-01', 'Maurer AG', 40, 1200, 3.5, 20, 2, 20, 0, 1180, 'Spinning Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Maus au Chocolat', DATE '2011-04-01', 'Mack Rides', 10, 1200, 0, 0, 9, 12, 0, 350, 'Interactive Dark Ride', 9, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'F.L.Y.', DATE '2020-09-17', 'Vekoma', 100, 1200, 4.5, 40, 2, 16, 0, 1230, 'Flying Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'River Quest', DATE '2002-04-01', 'Intamin', 20, 1200, 0, 22, 18, 9, 0, 440, 'River Rapids', 6, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Tikal', DATE '1999-04-01', 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Talokan', DATE '1999-04-01', 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Black Mamba', DATE '2006-04-01', 'Bolliger & Mabillard', 80, 1500, 4.5, 27, 2, 32, 6, 779, 'Inverted Coaster', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Taron', DATE '2016-06-30', 'Intamin', 117, 1200, 4.5, 30, 2, 32, 0, 1349, 'Launched Coaster', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Raik', DATE '2016-06-30', 'Gerstlauer', 60, 1000, 3.5, 25, 2, 16, 0, 682, 'Family Coaster', 2, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Chiapas', DATE '2014-04-01', 'Intamin', 53, 1200, 3.5, 20, 2, 20, 0, 850, 'Log Flume', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Colorado Adventure', DATE '1996-04-01', 'Intamin', 45, 1200, 3.5, 20, 2, 20, 0, 1180, 'Mine Train', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Winja''s Fear & Force', DATE '2006-04-01', 'Maurer AG', 40, 1200, 3.5, 20, 2, 20, 0, 1180, 'Spinning Coaster', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Maus au Chocolat', DATE '2011-04-01', 'Mack Rides', 10, 1200, 0, 0, 9, 12, 0, 350, 'Interactive Dark Ride', 9, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'F.L.Y.', DATE '2020-09-17', 'Vekoma', 100, 1200, 4.5, 40, 2, 16, 0, 1230, 'Flying Coaster', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'River Quest', DATE '2002-04-01', 'Intamin', 20, 1200, 0, 22, 18, 9, 0, 440, 'River Rapids', 6, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Tikal', DATE '1999-04-01', 'Zierer', 0, 1200, 0, 0, null, null, 0, 0, 'Flat Ride', 3, 'ouverte', 1);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Talokan', DATE '1999-04-01', 'Zierer', 0, 1200, 0, 0, null, null, 0, 0, 'Flat Ride', 3, 'ouverte', 1);
 
 -- Europa-Park
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Blue Fire Megacoaster', DATE '2009-04-01', 'Mack Rides', 100, 1200, 4, 38, 2, 20, 0, 1050, 'Launched Coaster', 3, 'Ouvert', 2);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Silver Star', DATE '2002-04-01', 'Bolliger & Mabillard', 130, 1200, 4, 73, 3, 36, 0, 1620, 'Hyper Coaster', 3, 'Ouvert', 2);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Wodan Timbur Coaster', DATE '2012-04-01', 'Great Coasters International', 100, 1200, 4, 40, 2, 24, 0, 1050, 'Wooden Coaster', 3, 'Ouvert', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Blue Fire Megacoaster', DATE '2009-04-01', 'Mack Rides', 100, 1200, 4, 38, 2, 20, 0, 1050, 'Launched Coaster', 3, 'ouverte', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Silver Star', DATE '2002-04-01', 'Bolliger & Mabillard', 130, 1200, 4, 73, 3, 36, 0, 1620, 'Hyper Coaster', 3, 'ouverte', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Wodan Timbur Coaster', DATE '2012-04-01', 'Great Coasters International', 100, 1200, 4, 40, 2, 24, 0, 1050, 'Wooden Coaster', 3, 'ouverte', 2);
 
 -- Disneyland Paris
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Hyperspace Mountain', DATE '2005-04-01', 'Vekoma', 70, 1200, 3.5, 32, 2, 24, 2, 2000, 'Launched Coaster', 3, 'Ouvert', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Big Thunder Mountain', DATE '1992-04-01', 'Vekoma', 60, 1200, 3.5, 30, 2, 30, 0, 2000, 'Mine Train', 3, 'Ouvert', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Pirates of the Caribbean', DATE '1992-04-01', 'Intamin', 30, 3400, 1.95, 10, 50, 24, 0, 1000, 'Dark Ride', 10, 'Ouvert', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Phantom Manor', DATE '1992-04-01', 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 15, 'Ouvert', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', DATE '1993-04-01', 'Intamin', 60, 1200, 3.5, 25, 2, 20, 0, 1200, 'Mine Train', 3, 'Ouvert', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Avengers Assemble', DATE '2021-06-17', 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 9, 'Ouvert', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Hyperspace Mountain', DATE '2005-04-01', 'Vekoma', 70, 1200, 3.5, 32, 2, 24, 2, 2000, 'Launched Coaster', 3, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Big Thunder Mountain', DATE '1992-04-01', 'Vekoma', 60, 1200, 3.5, 30, 2, 30, 0, 2000, 'Mine Train', 3, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Pirates of the Caribbean', DATE '1992-04-01', 'Intamin', 30, 3400, 1.95, 10, 50, 24, 0, 1000, 'Dark Ride', 10, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Phantom Manor', DATE '1992-04-01', 'Vekoma', 0, 1200, 0, 0, null, null, 0, 0, 'Dark Ride', 15, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', DATE '1993-04-01', 'Intamin', 60, 1200, 3.5, 25, 2, 20, 0, 1200, 'Mine Train', 3, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Avengers Assemble', DATE '2021-06-17', 'Vekoma', 0, 1200, 0, 0, null, null, 0, 0, 'Dark Ride', 9, 'ouverte', 3);

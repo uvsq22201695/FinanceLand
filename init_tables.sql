@@ -43,19 +43,22 @@ CREATE TABLE parc (
     id_parc NUMBER PRIMARY KEY,
     nom VARCHAR2(100) NOT NULL,
     date_ouverture DATE,
-    superficie NUMBER check ( superficie > 0 ),
+    superficie NUMBER,
     pays VARCHAR2(100),
-    ville VARCHAR2(100)
+    ville VARCHAR2(100),
+    constraint chk_superficie CHECK (superficie > 0)
 );
 
 -- Création de la table 'tarif'
 CREATE TABLE tarif (
     nom_tarif VARCHAR2(100) PRIMARY KEY,
-    prix NUMBER check ( prix >= 0 ),
-    duree_en_jour NUMBER check ( duree_en_jour > 0 ),
+    prix NUMBER,
+    duree_en_jour NUMBER,
     reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
+    constraint ch_tarif_prix CHECK (prix > 0),
+    constraint chk_tarif_duree CHECK (duree_en_jour > 0),
     constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
 );
 

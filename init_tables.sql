@@ -168,17 +168,17 @@ INSERT INTO parc values (14, 'Cedar Point', 1870-05-17, 200, 'États-Unis', 'San
 -- Insertions attractions
 
 -- Phantasialand
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Black Mamba', 2006-04-01, 'Bolliger & Mabillard', 80, 1500, 4.5, 27, 2, 32, 6, 779, 'Inverted Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Taron', 2016-06-30, 'Intamin', 117, 1200, 4.5, 30, 2, 32, 0, 1349, 'Launched Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Raik', 2016-06-30, 'Gerstlauer', 60, 1000, 3.5, 25, 2, 16, 0, 682, 'Family Coaster', 2, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Chiapas', 2014-04-01, 'Intamin', 53, 1200, 3.5, 20, 2, 20, 0, 850, 'Log Flume', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Colorado Adventure', 1996-04-01, 'Intamin', 45, 1200, 3.5, 20, 2, 20, 0, 1180, 'Mine Train', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Winja''s Fear & Force', 2006-04-01, 'Maurer AG', 40, 1200, 3.5, 20, 2, 20, 0, 1180, 'Spinning Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Maus au Chocolat', 2011-04-01, 'Mack Rides', 10, 1200, 0, 0, 9, 12, 0, 350, 'Interactive Dark Ride', 9, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'F.L.Y.', 2020-09-17, 'Vekoma', 100, 1200, 4.5, 40, 2, 16, 0, 1230, 'Flying Coaster', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'River Quest', 2002-04-01, 'Intamin', 20, 1200, 0, 22, 18, 9, 0, 440, 'River Rapids', 6, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tikal', 1999-04-01, 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Talokan', 1999-04-01, 'Zierer', 0, 1200, 0, 0, 0, 0, 0, 0, 'Flat Ride', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Black Mamba', 2006-05-24, 'Bolliger & Mabillard', 80, 1500, 4.5, 26, 2, 32, 4, 768, 'Inverted Coaster', 60, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Taron', 2016-06-30, 'Intamin', 117, 1200, 1.8, 30, 4, 16, 0, 1320, 'Launched Coaster', 100, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Raik', 2016-06-30, 'Vekoma', 62, 720, NULL, 25, 1, 20, 0, 210, 'Boomerang coaster', 90, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Chiapas', 2014-05-01, 'Intamin', 76, 1740, NULL, 15, 29, 6, 0, 620, 'Log Flume', 360, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Colorado Adventure', 1996-05-11, 'Vekoma', 50, 2300, NULL, 26, 5, 32, 0, 1280, 'Mine Train', 175, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Winjas Fear & Force', 2002-03-30, 'Maurer Rides', 66, 1440, NULL, 17.40, 14, 4, 0, 465, 'Spinning Coaster', 3, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Maus au Chocolat', 2011-06-09, 'ETF Rides', NULL, 960, NULL, 0, 9, 12, 0, 350, 'Interactive Dark Ride', 420, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'F.L.Y.', 2020-09-17, 'Vekoma', 78, 1400, 4.5, NULL, 4, 20, 2, 1236, 'Flying Launched Coaster', 107, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'River Quest', 2002-07-27, 'HAFEMA', NULL, 960, NULL, 22, 18, 9, 0, 440, 'River Rapids', 360, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Geister Rikscha', 1981-06-05, 'Schwarzkopf', NULL, 3600, NULL, NULL, 100, 3, 0, 250, 'Omnimover', 480, 'Ouvert', 1);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Würmling Express', 2010-06-01, 'Preston & Barbieri', 8, 330, NULL, 8, 12, 2, 0, 200, 'Family Coaster', 360, 'Ouvert', 1);
 
 -- Europa-Park
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Blue Fire Megacoaster', 2009-04-01, 'Mack Rides', 100, 1200, 4, 38, 2, 20, 0, 1050, 'Launched Coaster', 3, 'Ouvert', 2);
@@ -192,3 +192,14 @@ INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pirates of the C
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Phantom Manor', 1992-04-01, 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 15, 'Ouvert', 3);
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', 1993-04-01, 'Intamin', 60, 1200, 3.5, 25, 2, 20, 0, 1200, 'Mine Train', 3, 'Ouvert', 3);
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Avengers Assemble', 2021-06-17, 'Vekoma', 0, 1200, 0, 0, 0, 0, 0, 0, 'Dark Ride', 9, 'Ouvert', 3);
+
+-- Parc Astérix
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'OzIris', 2012-04-07, 'Bolliger & Mabillard', 90, 1600, NULL, 40, 3, 32, 5, 1000, 'Inverted Coaster', 135, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pégase Express', 2017-06-11, 'Gerstlauer', 52, 1200, NULL, 20, 4, 20, 0, 928, 'Family Coaster', 120, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tonnerre 2 Zeus', 1997-04-07, 'Custom Coasters International', 90, 1440, NULL, 29.90, 2, 24, 0, 1232.60, 'Wooden Coaster', 125, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Goudurix', 1989-04-30, 'Vekoma', 90, 1100, 4.5, 36.10, 2, 28, 7, 950, 'Steel Coaster', 80, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Trace du Hourra', 2001-03-31, 'Mack Rides', 60, 1500, NULL, 31, 5, 14, 0, 900, 'Bobsleigh', 170, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Menhir Express', 1995-04-07, 'Hopkins Ride', NULL, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Grand Splatch', 1989-04-30, 'Intamin', NULL, 1400, 3.5, 11, 9, 20, 0, 627, 'Log Flume', 360, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Toutatis', 2023-04-08, 'Intamin', 110, 1260, NULL, 51, 3, 20, 3, 1075, 'Launched Coaster', 123, 'Ouvert', 4);
+

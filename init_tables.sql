@@ -10,7 +10,7 @@ BEGIN
             'EMPLOYE', 'TRAVAUX', 'ATTRACTION', 'CLIENT', 'TARIF', 'PARC'
         )
     ) LOOP
-        v_sql := 'DROP TABLE ' || table_name.table_name || ' CASCADE CONSTRAINTS';
+        v_sql := 'DROP TABLE ' || '"' || table_name.table_name || '"' || ' CASCADE CONSTRAINTS';
         EXECUTE IMMEDIATE v_sql;
     END LOOP;
 END;
@@ -43,9 +43,10 @@ CREATE TABLE parc (
     id_parc NUMBER PRIMARY KEY,
     nom VARCHAR2(100) NOT NULL,
     date_ouverture DATE,
-    superficie NUMBER,
+    superficie NUMBER check ( superficie > 0 ),
     pays VARCHAR2(100),
     ville VARCHAR2(100)
+    constraint chk_parc_superficie CHECK (superficie > 0 or superficie is null)
 );
 
 -- Création de la table 'tarif'
@@ -55,7 +56,10 @@ CREATE TABLE tarif (
     duree_en_jour NUMBER,
     reduction NUMBER,
     date_debut DATE,
-    date_fin DATE
+    date_fin
+    constraint chk_tarif_prix CHECK (prix >= 0),
+    constraint chk_tarif_duree CHECK (duree_en_jour > 0),
+    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
 );
 
 -- Création de la table 'client'
@@ -89,9 +93,13 @@ CREATE TABLE attraction (
     etat VARCHAR2(50),
     id_parc NUMBER,
     CONSTRAINT chk_attraction_etat_valide CHECK (etat IN ('ouverte', 'fermée', 'en travaux')),
-    CONSTRAINT chk_attraction_capacite_non_nulle CHECK (capacite_horaire > 0),
-    CONSTRAINT chk_attraction_nombre_train_minimum CHECK (nombre_de_train >= 1),
-    CONSTRAINT chk_attraction_personnes_par_train_minimum CHECK (personnes_par_train >= 1),
+    CONSTRAINT chk_attraction_capacite_non_nulle CHECK (capacite_horaire > 0 or capacite_horaire is null),
+    CONSTRAINT chk_attraction_nombre_train_minimum CHECK (nombre_de_train >= 1 or nombre_de_train is null),
+    CONSTRAINT chk_attraction_personnes_par_train_minimum CHECK (personnes_par_train >= 1 or personnes_par_train is null),
+    CONSTRAINT chk_attraction_nombre_inversion_non_negatif CHECK (nombre_inversion >= 0 or nombre_inversion is null),
+    CONSTRAINT chk_attraction_longueur_non_negatif CHECK (longueur >= 0 or longueur is null),
+    CONSTRAINT chk_attraction_duree_non_negatif CHECK (duree >= 0 or duree is null),
+    CONSTRAINT chk_attraction_vitesse_non_negatif CHECK (vitesse_maximale >= 0 or vitesse_maximale is null),
     CONSTRAINT fk_attraction_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc)
 );
 
@@ -106,7 +114,7 @@ CREATE TABLE travaux (
     etat VARCHAR2(50),
     reparateur VARCHAR2(100),
     CONSTRAINT chk_travaux_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
-    CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0),
+    CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
 );
@@ -136,6 +144,9 @@ CREATE TABLE contrat (
     metier VARCHAR2(100),
     salaire NUMBER,
     type VARCHAR2(50),
+    CONSTRAINT chk_contrat_salaire_non_negatif CHECK (salaire > 0),
+    CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'stage', 'alternance', 'interim')),
+    CONSTRAINT chk_contrat_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
     CONSTRAINT fk_contrat_employe FOREIGN KEY (numero_de_securite_sociale) REFERENCES employe(numero_de_securite_sociale)
 );
 
@@ -163,6 +174,7 @@ CREATE TABLE billet (
     date_debut_validite DATE,
     date_fin_validite DATE,
     tarif VARCHAR2(100),
+    CONSTRAINT chk_billet_dates CHECK (date_fin_validite >= date_debut_validite),
     CONSTRAINT fk_billet_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
     CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),
     CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif)
@@ -176,7 +188,7 @@ INSERT INTO parc VALUES (1, 'Phantasialand', DATE '1967-04-30', 28, 'Allemagne',
 INSERT INTO parc VALUES (2, 'Europa-Park', DATE '1975-07-12', 95, 'Allemagne', 'Rust');
 INSERT INTO parc VALUES (3, 'Disneyland Paris', DATE '1992-04-12', 2230, 'France', 'Marne-la-Vallée');
 INSERT INTO parc VALUES (4, 'Parc Astérix', DATE '1989-04-30', 35, 'France', 'Plailly');
-INSERT INTO parc VALUES (5, 'Futuroscope', DATE '1987-11-30', 60, 'France', 'Chasseneuil-du-Poitou'); -- Correction 31 novembre impossible
+INSERT INTO parc VALUES (5, 'Futuroscope', DATE '1987-05-31', 60, 'France', 'Chasseneuil-du-Poitou'); -- Correction 31 novembre impossible
 INSERT INTO parc VALUES (6, 'Walibi Rhône-Alpes', DATE '1979-06-04', 35, 'France', 'Les Avenières');
 INSERT INTO parc VALUES (7, 'Walibi Sud-Ouest', DATE '1999-06-04', 30, 'France', 'Roquefort');
 INSERT INTO parc VALUES (8, 'Alton Towers', DATE '1980-04-04', 200, 'Royaume-Uni', 'Alton');

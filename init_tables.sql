@@ -160,10 +160,11 @@ CREATE TABLE commande (
 
 -- Création de la table 'tourniquet'
 CREATE TABLE tourniquet (
-    id_attraction NUMBER,
-    heure DATE,
-    entree_ou_sortie VARCHAR2(50),
-    CONSTRAINT fk_tourniquet_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
+    id_attraction NUMBER NOT NULL,
+    heure DATE NOT NULL,
+    entree_ou_sortie VARCHAR2(50) NOT NULL,
+    CONSTRAINT fk_tourniquet_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction),
+    CONSTRAINT chk_entree_ou_sortie CHECK (entree_ou_sortie IN ('entrée', 'sortie'))
 );
 
 -- Création de la table 'billet'
@@ -199,6 +200,10 @@ INSERT INTO parc VALUES (12, 'Universal Studios Hollywood', DATE '1964-07-15', 4
 INSERT INTO parc VALUES (13, 'Six Flags Magic Mountain', DATE '1971-05-29', 262, 'États-Unis', 'Valencia');
 INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis', 'Sandusky');
 
+-- Insertions tarif
+
+-- Insertions clients
+
 -- Insertions attractions
 
 -- Phantasialand
@@ -216,26 +221,62 @@ INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'River Quest', DA
 INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Blue Fire Megacoaster', DATE '2009-04-04', 'Mack Rides', 100, 1720, 3.80, 38, 5, 20, 4, 1056, 'Launched Coaster', 140, 'ouverte', 2);
 INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Silver Star', DATE '2002-03-23', 'Bolliger & Mabillard', 127, 1750, 4, 73, 3, 36, 0, 1620, 'Hyper Coaster', 360, 'ouverte', 2);
 INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Wodan Timbur Coaster', DATE '2012-03-31', 'Great Coasters International', 100, 1250, 3.5, 40, 3, 24, 0, 1050, 'Wooden Coaster', 150, 'ouverte', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Eurosat - CanCan Coaster', DATE '1989-09-12', 'Mack Rides', 60, 1280, 4, 25.5, 7, 14, 0, 922, 'Dark Ride', 198, 'ouverte', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Euro-Mir', DATE '1997-06-12', 'Mack Rides', 80, 1600, 4, 28.30, 9, 16, 0, 984, 'Spinning Coaster', 273, 'ouverte', 2);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Voltron Nevera', DATE '2024-04-24', 'Mack Rides', 100, 1600, 4.2, 32.50, 7, 16, 7, 1385, 'Launched Coaster', 180, 'ouverte', 2);
 
 -- Disneyland Paris
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Hyperspace Mountain', DATE '1995-06-01', 'Vekoma', 76, 2400, NULL, 31, 5, 24, 2, 1000, 'Launched Coaster', 237, 'ouverte', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Big Thunder Mountain', DATE '1992-04-12', 'Vekoma', 65, 2424, NULL, 22, 5, 30, 0, 1205, 'Mine Train', 236, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Hyperspace Mountain', DATE '1995-06-01', 'Vekoma', 76, 2400, 2.7, 31, 5, 24, 2, 1000, 'Launched Coaster', 237, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Big Thunder Mountain', DATE '1992-04-12', 'Vekoma', 65, 2424, 1.9, 22, 5, 30, 0, 1205, 'Mine Train', 236, 'ouverte', 3);
 INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Pirates of the Caribbean', DATE '1992-04-01', 'Intamin', 30, 3400, 1.95, 10, 50, 24, 0, 1000, 'Dark Ride', 630, 'ouverte', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Phantom Manor', DATE '1992-04-12', 'Vekoma', 2, 2200, NULL, 5.64, 130, 2, 0, 239, 'Omnimover', 360, 'ouverte', 3);
-INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', DATE '1993-07-30', 'Intamin', 58, 1440, NULL, 18, 7, 12, 1, 566, 'Mad Mouse', 74, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Phantom Manor', DATE '1992-04-12', 'Vekoma', 2, 2200, 1, 5.64, 130, 2, 0, 239, 'Omnimover', 360, 'ouverte', 3);
+INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Indiana Jones et le Temple du Péril', DATE '1993-07-30', 'Intamin', 58, 1440, 3.2, 18, 7, 12, 1, 566, 'Mad Mouse', 74, 'ouverte', 3);
 INSERT INTO attraction VALUES (sequence_id_attraction.nextval, 'Avengers Assemble', DATE '2002-03-16', 'Vekoma', 91, 1800, 5, 24.40, 5, 24, 3, 1037, 'Dark Ride', 70, 'ouverte', 3);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Casey Jr. - le Petit Train du Cirque', DATE '1994-04-12', 'Vekoma', 45, 1440, NULL, 3, 2, 34, 0, 522, 'Family Coaster', 120, 'ouverte', 3);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Crush''s Coaster', DATE '2007-06-09', 'Maurer Rides', 61, 895, NULL, 15.50, 11, 4, 0, 550, 'Spinning Coaster', 140, 'ouverte', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Casey Jr. - le Petit Train du Cirque', DATE '1994-04-12', 'Vekoma', 45, 1440, 1.1, 3, 2, 34, 0, 522, 'Family Coaster', 120, 'ouverte', 3);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Crushs Coaster', DATE '2007-06-09', 'Maurer Rides', 61, 895, 1.5, 15.50, 11, 4, 0, 550, 'Spinning Coaster', 140, 'ouverte', 3);
 
 -- Parc Astérix
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'OzIris', DATE'2012-04-07', 'Bolliger & Mabillard', 90, 1600, NULL, 40, 3, 32, 5, 1000, 'Inverted Coaster', 135, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pégase Express', DATE'2017-06-11', 'Gerstlauer', 52, 1200, NULL, 20, 4, 20, 0, 928, 'Family Coaster', 120, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tonnerre 2 Zeus', DATE'1997-04-07', 'Custom Coasters International', 90, 1440, NULL, 29.90, 2, 24, 0, 1232.60, 'Wooden Coaster', 125, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'OzIris', DATE'2012-04-07', 'Bolliger & Mabillard', 90, 1600, 3.2, 40, 3, 32, 5, 1000, 'Inverted Coaster', 135, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pégase Express', DATE'2017-06-11', 'Gerstlauer', 52, 1200, 2.1, 20, 4, 20, 0, 928, 'Family Coaster', 120, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tonnerre 2 Zeus', DATE'1997-04-07', 'Custom Coasters International', 90, 1440, 2.1, 29.90, 2, 24, 0, 1232.60, 'Wooden Coaster', 125, 'Ouvert', 4);
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Goudurix', DATE'1989-04-30', 'Vekoma', 90, 1100, 4.5, 36.10, 2, 28, 7, 950, 'Steel Coaster', 80, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Trace du Hourra', DATE'2001-03-31', 'Mack Rides', 60, 1500, NULL, 31, 5, 14, 0, 900, 'Bobsleigh', 170, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Menhir Express', DATE'1995-04-07', 'Hopkins Ride', NULL, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Grand Splatch', DATE'1989-04-30', 'Intamin', NULL, 1400, 3.5, 11, 9, 20, 0, 627, 'Log Flume', 360, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Toutatis', DATE'2023-04-08', 'Intamin', 110, 1260, NULL, 51, 3, 20, 3, 1075, 'Launched Coaster', 123, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Le vol d\Icare', DATE'1994-04-07', 'Zierer', 42, 1150, NULL, 10.70, 5, 4, 0, 410, 'Family Coaster', 75, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'SOS Tournevis', DATE'1990-04-30', 'Zierer', 32, 1000, NULL, 6, 1, 30, 0, 199, 'Family Coaster', 90, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus', DATE'2004-04-07', 'Hopkins Ride', NULL, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Trace du Hourra', DATE'2001-03-31', 'Mack Rides', 60, 1500, 1.8, 31, 5, 14, 0, 900, 'Bobsleigh', 170, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Menhir Express', DATE'1995-04-07', 'Hopkins Ride', 36, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Grand Splatch', DATE'1989-04-30', 'Intamin', 42, 1400, 3.5, 11, 9, 20, 0, 627, 'Log Flume', 360, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Toutatis', DATE'2023-04-08', 'Intamin', 110, 1260, 1.1, 51, 3, 20, 3, 1075, 'Launched Coaster', 123, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Le vol d\Icare', DATE'1994-04-07', 'Zierer', 42, 1150, 1, 10.70, 5, 4, 0, 410, 'Family Coaster', 75, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'SOS Tournevis', DATE'1990-04-30', 'Zierer', 32, 1000, 1.2, 6, 1, 30, 0, 199, 'Family Coaster', 90, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus', DATE'2004-04-07', 'Hopkins Ride', 22, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
+
+-- Insertions travaux
+
+-- Insertions employes
+
+-- Insertions contrats
+
+-- Insertions commandes
+
+-- Insertions dans table tourniquets
+BEGIN
+    FOR i IN 1..100000 LOOP
+        INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
+        VALUES (
+            MOD(DBMS_RANDOM.VALUE(1, 100), 100) + 1, -- id_attraction entre 1 et 100
+            TO_DATE(
+                TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
+                'YYYY-MM-DD HH24:MI:SS'
+            ), -- Heure entre 09:00:00 et 19:59:59
+            CASE
+                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.5 THEN 'entrée'
+                ELSE 'sortie'
+            END
+        );
+    END LOOP;
+    COMMIT;
+END;
+/
+
+-- Insertions dans la table billets

@@ -270,7 +270,7 @@ BEGIN
                 'YYYY-MM-DD HH24:MI:SS'
             ), -- Heure entre 09:00:00 et 19:59:59
             CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.5 THEN 'entrée'
+                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
                 ELSE 'sortie'
             END
         );
@@ -280,3 +280,139 @@ END;
 /
 
 -- Insertions dans la table billets
+
+-- Requêtes
+
+-- 1 Quels sont les parcs ouverts depuis plus de 10 ans ?
+SELECT nom, date_ouverture
+FROM parc
+WHERE date_ouverture < SYSDATE - INTERVAL '10' YEAR;
+
+-- 2 Combien d'employés travaillent dans chaque parc ?
+SELECT p.nom, COUNT(distinct (e.numero_de_securite_sociale)) AS nb_employes
+FROM parc p
+LEFT JOIN employe e ON p.id_parc = e.id_parc
+GROUP BY p.nom;
+
+-- 3 Quelle est la date du dernier travail effectuée sur chaque attraction ?
+SELECT a.nom, MAX(t.date_fin) AS date_dernier_travail
+FROM attraction a
+LEFT JOIN travaux t ON a.id_attraction = t.id_attraction
+GROUP BY a.nom;
+
+-- 4 Quels sont le nombre moyen d'attractions/superficie pour chaque parc ?
+SELECT p.nom, COUNT(a.id_attraction) / p.superficie AS nb_attractions_par_superficie
+FROM parc p
+LEFT JOIN attraction a ON p.id_parc = a.id_parc
+GROUP BY p.nom, p.superficie;
+
+-- 5 Quels sont les types d'attractions les plus courants dans tous les parcs ?
+SELECT type, COUNT(id_attraction) AS nb_attractions
+FROM attraction
+GROUP BY type
+ORDER BY nb_attractions DESC;
+
+-- 6 Quel parc a le plus d’attractions du constructeur “Vekoma” ?
+SELECT p.nom, COUNT(a.id_attraction) AS nb_attractions_vekoma
+FROM parc p
+JOIN attraction a ON p.id_parc = a.id_parc
+WHERE a.constructeur = 'Vekoma'
+GROUP BY p.nom
+
+-- 7 Combien de travaux ont eu lieu pour chaque attraction au cours des 5 dernières années ?
+SELECT a.nom, COUNT(t.id_travaux) AS nb_travaux
+FROM attraction a
+JOIN travaux t ON a.id_attraction = t.id_attraction
+WHERE t.date_debut >= SYSDATE - INTERVAL '5' YEAR
+GROUP BY a.nom;
+
+-- 8 Quel est le salaire moyen des employés ?
+SELECT AVG(c.salaire) AS salaire_moyen
+FROM contrat c;
+
+-- 9 Quelle est la proportion de billets “journalier” vendue ?
+SELECT COUNT(b.id_billet) / (SELECT COUNT(id_billet) FROM billet) AS proportion_journalier
+FROM billet b
+JOIN tarif t ON b.tarif = t.nom_tarif
+WHERE t.nom_tarif = 'journalier';
+
+-- 10 Quels employés ont un contrat en cours mais dont le contrat se termine dans les 3 prochains mois ?
+SELECT e.nom, e.prenom
+FROM employe e
+JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale
+WHERE c.date_fin >= SYSDATE AND c.date_fin <= SYSDATE + INTERVAL '3' MONTH;
+
+-- 11 S’il n’y avait pas de tarif étudiant, combien chaque parc aurait-il gagné en plus ?
+
+-- 12 Quel parc a le plus grand nombre d'attractions avec des inversions ?
+SELECT p.nom, COUNT(a.id_attraction) AS nb_attractions_inversions
+FROM parc p
+JOIN attraction a ON p.id_parc = a.id_parc
+WHERE a.nombre_inversion > 0
+GROUP BY p.nom
+ORDER BY nb_attractions_inversions DESC;
+
+-- 13 Quelles attractions ont été fermées pour des travaux au moins deux fois l'année dernière ?
+SELECT a.nom, COUNT(t.id_travaux) AS nb_travaux
+FROM attraction a
+JOIN travaux t ON a.id_attraction = t.id_attraction
+WHERE t.date_debut >= TRUNC(SYSDATE, 'YEAR') - INTERVAL '1' YEAR
+AND t.date_debut < TRUNC(SYSDATE, 'YEAR')
+AND t.etat = 'terminé'
+GROUP BY a.nom
+HAVING COUNT(t.id_travaux) >= 2;
+
+-- 14 Quels employés ont des contrats dont le salaire est supérieur à la moyenne des salaires de tous les employés exerçant le même métier ?
+SELECT e.nom, e.prenom, c.salaire
+FROM employe e
+JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale
+WHERE c.salaire > (
+    SELECT AVG(c2.salaire)
+    FROM contrat c2
+    WHERE c2.metier = c.metier
+);
+
+-- 15 Quels sont pour chaque parc les 3 attractions qui ont coûté le plus en termes de maintenance ?
+SELECT p.nom, a.nom, t.cout
+FROM parc p
+JOIN attraction a ON p.id_parc = a.id_parc
+JOIN travaux t ON a.id_attraction = t.id_attraction
+ORDER BY t.cout DESC
+FETCH FIRST 3 ROWS ONLY;
+
+-- 16 Pour chaque parc, quelle attraction a eu le plus de travaux?
+SELECT p.nom, a.nom, COUNT(t.id_travaux) AS nb_travaux
+FROM parc p
+JOIN attraction a ON p.id_parc = a.id_parc
+JOIN travaux t ON a.id_attraction = t.id_attraction
+GROUP BY p.nom, a.nom
+ORDER BY nb_travaux DESC
+FETCH FIRST ROW ONLY;
+
+-- 17 ???
+
+
+-- 18 Quelle est la capacité horaire pour chaque parc ?
+SELECT p.nom, SUM(a.capacite_horaire) AS capacite_horaire_totale
+FROM parc p
+JOIN attraction a ON p.id_parc = a.id_parc
+GROUP BY p.nom;
+
+-- 19 Quelles sont les attractions les plus populaires de tous les parcs (laquelle a le plus d’entrée) ?
+SELECT a.nom, COUNT(t.id_attraction) AS nb_entrees
+FROM attraction a
+JOIN tourniquet t ON a.id_attraction = t.id_attraction
+WHERE t.entree_ou_sortie = 'entrée'
+GROUP BY a.nom
+ORDER BY nb_entrees DESC
+FETCH FIRST ROW ONLY;
+
+-- 20 Pour chaque parc, quel est le visiteur le plus fidèle ?
+SELECT p.nom, c.nom, c.prenom, COUNT(b.id_billet) AS nb_billets
+FROM parc p
+JOIN billet b ON p.id_parc = b.id_parc
+JOIN commande co ON b.id_commande = co.id_commande
+JOIN client c ON co.id_client = c.id_client
+GROUP BY p.nom, c.nom, c.prenom
+ORDER BY nb_billets DESC
+FETCH FIRST ROW ONLY;

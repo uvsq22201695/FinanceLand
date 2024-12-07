@@ -201,6 +201,11 @@ INSERT INTO parc VALUES (13, 'Six Flags Magic Mountain', DATE '1971-05-29', 262,
 INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis', 'Sandusky');
 
 -- Insertions tarif
+INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 150, 365, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2024-11-15', DATE '2021-12-31');
 
 -- Insertions clients
 
@@ -250,13 +255,13 @@ INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus
 
 -- Insertions travaux
 
--- Insertions employes
+-- Insertions employés
 
 -- Insertions contrats
 
 -- Insertions commandes
 
--- Insertions dans table tourniquets
+-- Insertions tourniquets
 BEGIN
     FOR i IN 1..100000 LOOP
         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
@@ -318,6 +323,8 @@ FROM parc p
 JOIN attraction a ON p.id_parc = a.id_parc
 WHERE a.constructeur = 'Vekoma'
 GROUP BY p.nom
+ORDER BY nb_attractions_vekoma DESC
+FETCH FIRST ROW ONLY;
 
 -- 7 Combien de travaux ont eu lieu pour chaque attraction au cours des 5 dernières années ?
 SELECT a.nom, COUNT(t.id_travaux) AS nb_travaux

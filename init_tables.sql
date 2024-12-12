@@ -288,8 +288,10 @@ INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus
 -- Insertions commandes
 
 -- Insertions tourniquets
+DECLARE
+    i INTEGER := 0;
 BEGIN
-    FOR i IN 1..100000 LOOP
+    WHILE i < 1000 LOOP
         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
         VALUES (
             MOD(DBMS_RANDOM.VALUE(1, 100), 100) + 1, -- id_attraction entre 1 et 100
@@ -305,6 +307,7 @@ BEGIN
                 ELSE 'sortie'
             END
         );
+        i := i + 1;
     END LOOP;
     COMMIT;
 END;

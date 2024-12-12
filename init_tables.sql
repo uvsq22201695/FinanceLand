@@ -38,19 +38,6 @@ START WITH 1
 INCREMENT BY 1
 NOCACHE;
 
--- Triggers
-
--- Trigger pour empecher la suppression de contrat finit il y a moins de 5 ans
-
-CREATE OR REPLACE TRIGGER trg_contrat_delete
-BEFORE DELETE ON contrat
-FOR EACH ROW
-BEGIN
-    IF :OLD.date_fin >= SYSDATE - INTERVAL '5' YEAR THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Impossible de supprimer un contrat fini il y a moins de 5 ans');
-    END IF;
-END;
-
 -- Création de la table 'parc'
 CREATE TABLE parc (
     id_parc NUMBER PRIMARY KEY,
@@ -200,12 +187,43 @@ CREATE TABLE billet (
     date_fin_validite DATE,
     tarif VARCHAR2(100),
     reduction VARCHAR2(100),
+    scanne NUMBER(1, 0) DEFAULT 0,
     CONSTRAINT chk_billet_dates CHECK (date_fin_validite >= date_debut_validite),
+    constraint chk_scanne_type CHECK (scanne IN (0, 1)),
     CONSTRAINT fk_billet_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
     CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),
     CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif),
     CONSTRAINT fk_billet_reduction FOREIGN KEY (reduction) REFERENCES reduction(nom_reduction)
 );
+
+
+-- Triggers
+
+/* Trigger pour empêcher la modification d'un billet scanné dont la date de fin de validité est dépassée
+ou dont la date de début de validité n'est pas encore passée */
+CREATE OR REPLACE TRIGGER trigger_billet_scanne BEFORE UPDATE OF scanne ON billet FOR EACH ROW
+BEGIN
+    IF :OLD.scanne = 0 AND :NEW.scanne = 1 THEN
+        IF SYSDATE > :OLD.date_fin_validite THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Impossible de modifier un billet scanné dont la date de fin de validité est dépassée');
+        END IF;
+
+        IF :OLD.date_debut_validite > SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Impossible de modifier un billet scanné dont la date de début de validité n''est pas encore passée');
+        END IF;
+    END IF;
+END;
+
+-- Trigger pour empecher la suppression de contrat finit il y a moins de 5 ans
+
+CREATE OR REPLACE TRIGGER trg_contrat_delete
+BEFORE DELETE ON contrat
+FOR EACH ROW
+BEGIN
+    IF :OLD.date_fin >= SYSDATE - INTERVAL '5' YEAR THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Impossible de supprimer un contrat fini il y a moins de 5 ans');
+    END IF;
+END;
 
 -- Insertions
 
@@ -312,8 +330,6 @@ BEGIN
     COMMIT;
 END;
 /
-
--- test
 
 -- Insertions dans la table billets
 

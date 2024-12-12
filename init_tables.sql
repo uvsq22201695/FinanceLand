@@ -6,7 +6,7 @@ BEGIN
         SELECT table_name
         FROM user_tables
         WHERE table_name IN (
-            'BILLET', 'TOURNIQUET', 'COMMANDE', 'CONTRAT',
+            'BILLET', 'TOURNIQUET', 'COMMANDE', 'CONTRAT', 'REDUCTION',
             'EMPLOYE', 'TRAVAUX', 'ATTRACTION', 'CLIENT', 'TARIF', 'PARC'
         )
     ) LOOP
@@ -60,17 +60,6 @@ CREATE TABLE tarif (
     constraint ch_tarif_prix CHECK (prix > 0),
     constraint chk_tarif_duree CHECK (duree_en_jour > 0),
     constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
-);
-
--- Création de la table réduction
-CREATE TABLE reduction (
-    nom_reduction VARCHAR2(100) PRIMARY KEY,
-    reduction NUMBER,
-    date_debut DATE,
-    date_fin DATE,
-    constraint chk_reduction CHECK (reduction > 0 and reduction < 1),
-    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null),
-    constraint fk_reduction_tarif FOREIGN KEY (nom_reduction) REFERENCES billet(reduction)
 );
 
 -- Création de la table 'client'
@@ -128,7 +117,7 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
-);
+); -- FAIRE TRIGGER
 
 -- Création de la table 'employe'
 CREATE TABLE employe (
@@ -178,6 +167,16 @@ CREATE TABLE tourniquet (
     CONSTRAINT chk_entree_ou_sortie CHECK (entree_ou_sortie IN ('entrée', 'sortie'))
 );
 
+-- Création de la table réduction
+CREATE TABLE reduction (
+    nom_reduction VARCHAR2(100) PRIMARY KEY,
+    reduction NUMBER,
+    date_debut DATE,
+    date_fin DATE,
+    constraint chk_reduction CHECK (reduction > 0 and reduction < 1),
+    constraint chk_reduction_date_fin CHECK (date_fin >= date_debut or date_fin is null)
+);
+
 -- Création de la table 'billet'
 CREATE TABLE billet (
     id_billet NUMBER PRIMARY KEY,
@@ -196,23 +195,35 @@ CREATE TABLE billet (
     CONSTRAINT fk_billet_reduction FOREIGN KEY (reduction) REFERENCES reduction(nom_reduction)
 );
 
-
 -- Triggers
 
-/* Trigger pour empêcher la modification d'un billet scanné dont la date de fin de validité est dépassée
-ou dont la date de début de validité n'est pas encore passée */
-CREATE OR REPLACE TRIGGER trigger_billet_scanne BEFORE UPDATE OF scanne ON billet FOR EACH ROW
-BEGIN
-    IF :OLD.scanne = 0 AND :NEW.scanne = 1 THEN
-        IF SYSDATE > :OLD.date_fin_validite THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Impossible de modifier un billet scanné dont la date de fin de validité est dépassée');
-        END IF;
+-- Procedure pour scanner un billet
+create or replace procedure scanne_billet (id in number) as
+    date_debut_validite date;  -- Date de début de validité du billet
+    date_fin_validite date;  -- Date de fin de validité du billet
+    scanne number;  -- Billet scanné ou non
+begin
+    -- Récupération des dates de validité et du statut de scan du billet
+    select date_debut_validite into date_debut_validite from billet where billet.id_billet = id;
+    select date_fin_validite into date_fin_validite from billet where billet.id_billet = id;
+    select scanne into scanne from billet where billet.id_billet = id;
 
-        IF :OLD.date_debut_validite > SYSDATE THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Impossible de modifier un billet scanné dont la date de début de validité n''est pas encore passée');
-        END IF;
-    END IF;
-END;
+    -- Vérification des conditions de validité du billet
+    if scanne = 1 then
+        raise_application_error(-20001, 'Le billet a déjà été scanné');
+    end if;
+
+    if date_debut_validite > sysdate then
+        raise_application_error(-20002, 'Le billet n''est pas encore valide');
+    end if;
+
+    if date_fin_validite < sysdate then
+        raise_application_error(-20003, 'Le billet n''est plus valide');
+    end if;
+
+    -- Mise à jour du statut de scan du billet
+    update billet set scanne = 1 where id_billet = id_billet;
+end;
 
 -- Trigger pour empecher la suppression de contrat finit il y a moins de 5 ans
 
@@ -249,7 +260,7 @@ INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('annuel', 150, 365, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2024-11-15', DATE '2021-12-31');
+INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
 
 -- Insertions clients
 
@@ -285,17 +296,17 @@ INSERT INTO attraction values (sequence_id_attraction.nextval, 'Casey Jr. - le P
 INSERT INTO attraction values (sequence_id_attraction.nextval, 'Crushs Coaster', DATE '2007-06-09', 'Maurer Rides', 61, 895, 1.5, 15.50, 11, 4, 0, 550, 'Spinning Coaster', 140, 'ouverte', 3);
 
 -- Parc Astérix
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'OzIris', DATE'2012-04-07', 'Bolliger & Mabillard', 90, 1600, 3.2, 40, 3, 32, 5, 1000, 'Inverted Coaster', 135, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pégase Express', DATE'2017-06-11', 'Gerstlauer', 52, 1200, 2.1, 20, 4, 20, 0, 928, 'Family Coaster', 120, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tonnerre 2 Zeus', DATE'1997-04-07', 'Custom Coasters International', 90, 1440, 2.1, 29.90, 2, 24, 0, 1232.60, 'Wooden Coaster', 125, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Goudurix', DATE'1989-04-30', 'Vekoma', 90, 1100, 4.5, 36.10, 2, 28, 7, 950, 'Steel Coaster', 80, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Trace du Hourra', DATE'2001-03-31', 'Mack Rides', 60, 1500, 1.8, 31, 5, 14, 0, 900, 'Bobsleigh', 170, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Menhir Express', DATE'1995-04-07', 'Hopkins Ride', 36, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Grand Splatch', DATE'1989-04-30', 'Intamin', 42, 1400, 3.5, 11, 9, 20, 0, 627, 'Log Flume', 360, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Toutatis', DATE'2023-04-08', 'Intamin', 110, 1260, 1.1, 51, 3, 20, 3, 1075, 'Launched Coaster', 123, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Le vol d\Icare', DATE'1994-04-07', 'Zierer', 42, 1150, 1, 10.70, 5, 4, 0, 410, 'Family Coaster', 75, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'SOS Tournevis', DATE'1990-04-30', 'Zierer', 32, 1000, 1.2, 6, 1, 30, 0, 199, 'Family Coaster', 90, 'Ouvert', 4);
-INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus', DATE'2004-04-07', 'Hopkins Ride', 22, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'Ouvert', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'OzIris', DATE'2012-04-07', 'Bolliger & Mabillard', 90, 1600, 3.2, 40, 3, 32, 5, 1000, 'Inverted Coaster', 135, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Pégase Express', DATE'2017-06-11', 'Gerstlauer', 52, 1200, 2.1, 20, 4, 20, 0, 928, 'Family Coaster', 120, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Tonnerre 2 Zeus', DATE'1997-04-07', 'Custom Coasters International', 90, 1440, 2.1, 29.90, 2, 24, 0, 1232.60, 'Wooden Coaster', 125, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Goudurix', DATE'1989-04-30', 'Vekoma', 90, 1100, 4.5, 36.10, 2, 28, 7, 950, 'Steel Coaster', 80, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Trace du Hourra', DATE'2001-03-31', 'Mack Rides', 60, 1500, 1.8, 31, 5, 14, 0, 900, 'Bobsleigh', 170, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Menhir Express', DATE'1995-04-07', 'Hopkins Ride', 36, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Grand Splatch', DATE'1989-04-30', 'Intamin', 42, 1400, 3.5, 11, 9, 20, 0, 627, 'Log Flume', 360, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Toutatis', DATE'2023-04-08', 'Intamin', 110, 1260, 1.1, 51, 3, 20, 3, 1075, 'Launched Coaster', 123, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Le vol d\Icare', DATE'1994-04-07', 'Zierer', 42, 1150, 1, 10.70, 5, 4, 0, 410, 'Family Coaster', 75, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'SOS Tournevis', DATE'1990-04-30', 'Zierer', 32, 1000, 1.2, 6, 1, 30, 0, 199, 'Family Coaster', 90, 'ouverte', 4);
+INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus', DATE'2004-04-07', 'Hopkins Ride', 22, 1200, 0, 13, 30, 4, 0, 627, 'Log Flume', 300, 'ouverte', 4);
 
 -- Insertions travaux
 
@@ -306,30 +317,33 @@ INSERT INTO attraction values (sequence_id_attraction.nextval, 'Romus et Rapidus
 -- Insertions commandes
 
 -- Insertions tourniquets
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
-        VALUES (
-            MOD(DBMS_RANDOM.VALUE(1, 100), 100) + 1, -- id_attraction entre 1 et 100
-            TO_DATE(
-                TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
-                'YYYY-MM-DD HH24:MI:SS'
-            ), -- Heure entre 09:00:00 et 19:59:59
-            CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
-                ELSE 'sortie'
-            END
-        );
-        i := i + 1;
-    END LOOP;
-    COMMIT;
-END;
-/
+-- DECLARE
+--     i INTEGER := 0;
+--     max_id INTEGER := 0;
+-- BEGIN
+--     SELECT max(id_attraction) INTO max_id FROM attraction;
+--
+--     WHILE i < 1000 LOOP
+--         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
+--         VALUES (
+--             DBMS_RANDOM.VALUE(1, max_id), -- id_attraction entre 1 et 100
+--             TO_DATE(
+--                 TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
+--                 'YYYY-MM-DD HH24:MI:SS'
+--             ), -- Heure entre 09:00:00 et 19:59:59
+--             CASE
+--                 WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
+--                 ELSE 'sortie'
+--             END
+--         );
+--         i := i + 1;
+--     END LOOP;
+--     COMMIT;
+-- END;
+-- /
 
 -- Insertions dans la table billets
 
@@ -385,10 +399,10 @@ SELECT AVG(c.salaire) AS salaire_moyen
 FROM contrat c;
 
 -- 9 Quelle est la proportion de billets “journalier” vendue ?
-SELECT COUNT(b.id_billet) / (SELECT COUNT(id_billet) FROM billet) AS proportion_journalier
-FROM billet b
-JOIN tarif t ON b.tarif = t.nom_tarif
-WHERE t.nom_tarif = 'journalier';
+-- SELECT COUNT(b.id_billet) / (SELECT COUNT(id_billet) FROM billet) AS proportion_journalier
+-- FROM billet b
+-- JOIN tarif t ON b.tarif = t.nom_tarif
+-- WHERE t.nom_tarif = 'journalier';
 
 -- 10 Quels employés ont un contrat en cours mais dont le contrat se termine dans les 3 prochains mois ?
 SELECT e.nom, e.prenom

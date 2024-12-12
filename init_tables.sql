@@ -38,6 +38,10 @@ START WITH 1
 INCREMENT BY 1
 NOCACHE;
 
+-- Triggers
+
+
+
 -- Création de la table 'parc'
 CREATE TABLE parc (
     id_parc NUMBER PRIMARY KEY,
@@ -60,6 +64,17 @@ CREATE TABLE tarif (
     constraint ch_tarif_prix CHECK (prix > 0),
     constraint chk_tarif_duree CHECK (duree_en_jour > 0),
     constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
+);
+
+-- Création de la table réduction
+CREATE TABLE reduction (
+    nom_reduction VARCHAR2(100) PRIMARY KEY,
+    reduction NUMBER,
+    date_debut DATE,
+    date_fin DATE,
+    constraint chk_reduction CHECK (reduction > 0 and reduction < 1),
+    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null),
+    constraint fk_reduction_tarif FOREIGN KEY (nom_reduction) REFERENCES billet(reduction)
 );
 
 -- Création de la table 'client'
@@ -175,6 +190,7 @@ CREATE TABLE billet (
     date_debut_validite DATE,
     date_fin_validite DATE,
     tarif VARCHAR2(100),
+    reduction VARCHAR2(100),
     CONSTRAINT chk_billet_dates CHECK (date_fin_validite >= date_debut_validite),
     CONSTRAINT fk_billet_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
     CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),

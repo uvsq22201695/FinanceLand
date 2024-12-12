@@ -40,7 +40,16 @@ NOCACHE;
 
 -- Triggers
 
+-- Trigger pour empecher la suppression de contrat finit il y a moins de 5 ans
 
+CREATE OR REPLACE TRIGGER trg_contrat_delete
+BEFORE DELETE ON contrat
+FOR EACH ROW
+BEGIN
+    IF :OLD.date_fin >= SYSDATE - INTERVAL '5' YEAR THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Impossible de supprimer un contrat fini il y a moins de 5 ans');
+    END IF;
+END;
 
 -- Création de la table 'parc'
 CREATE TABLE parc (
@@ -194,7 +203,8 @@ CREATE TABLE billet (
     CONSTRAINT chk_billet_dates CHECK (date_fin_validite >= date_debut_validite),
     CONSTRAINT fk_billet_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
     CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),
-    CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif)
+    CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif),
+    CONSTRAINT fk_billet_reduction FOREIGN KEY (reduction) REFERENCES reduction(nom_reduction)
 );
 
 -- Insertions
@@ -412,8 +422,13 @@ GROUP BY p.nom, a.nom
 ORDER BY nb_travaux DESC
 FETCH FIRST ROW ONLY;
 
--- 17 ???
+-- 17 Pour chaque parc, quelle est la proportion de billets non utilisés ?
 
+SELECT p.nom, COUNT(b.id_billet) / (SELECT COUNT(id_billet) FROM billet) AS proportion_billets_non_utilises
+FROM parc p
+JOIN billet b ON p.id_parc = b.id_parc
+WHERE b.date_fin_validite < SYSDATE
+GROUP BY p.nom;
 
 -- 18 Quelle est la capacité horaire pour chaque parc ?
 SELECT p.nom, SUM(a.capacite_horaire) AS capacite_horaire_totale

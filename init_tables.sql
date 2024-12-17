@@ -127,6 +127,7 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
+    -- CONSTRAINT chk_travaux_date_deb check ()
 ); -- FAIRE TRIGGER
 
 -- Création de la table 'employe'
@@ -245,6 +246,33 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20001, 'Impossible de supprimer un contrat fini il y a moins de 5 ans');
     END IF;
 END;
+
+-- Trigger pour empecher un travail d'etre en cours ou terminé s'il n'y a pas de date de début
+
+create or replace trigger trg_travaux_sans_date_debut
+before insert or update on travaux
+for each row
+begin
+    if (:new.etat = 'en cours' or :new.etat = 'terminé') and :new.date_debut is null then
+        raise_application_error(-20001, 'Impossible de mettre un travail en cours sans date de début');
+    end if;
+end;
+
+-- Trigger pour modifier l'état de l'attraction s'il y a ou non des travaux en cours.
+
+create or replace trigger trg_attraction_etat
+before insert or update on travaux
+for each row
+declare
+    v_etat varchar2(50);
+begin
+    select etat into v_etat from attraction where id_attraction = :new.id_attraction;
+    if :new.etat = 'en cours' and v_etat = 'ouverte' then
+        update attraction set etat = 'en travaux' where id_attraction = :new.id_attraction;
+    elsif :new.etat = 'terminé' and v_etat = 'en travaux' then
+        update attraction set etat = 'ouverte' where id_attraction = :new.id_attraction;
+    end if;
+end;
 
 -- Insertions
 
@@ -522,29 +550,31 @@ INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
 
--- -- Droits et vues
---
--- -- Dirigeants
---
--- CREATE ROLE dirigeant;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON parc TO dirigeant;
--- GRANT select, insert, update, delete ON attraction TO dirigeant;
--- GRANT select, insert, update, delete ON travaux TO dirigeant;
--- GRANT select, insert, update, delete ON employe TO dirigeant;
--- GRANT select, insert, update, delete ON contrat TO dirigeant;
--- GRANT select ON client TO dirigeant;
--- GRANT select ON commande TO dirigeant;
--- GRANT select ON tourniquet TO dirigeant;
---
--- -- Service clientèle
---
--- CREATE ROLE service_client;
--- grant select, insert, update, delete ON client TO service_client;
--- grant select, insert, update, delete ON commande TO service_client;
--- grant select, insert, update, delete on billet TO service_client;
---
---
+-- Droits et vues
 
+-- Dirigeants
+
+CREATE ROLE dirigeants;
+
+-- Service clientèle
+
+CREATE ROLE service_client;
+
+-- Directeur de parc
+
+CREATE ROLE directeur_parc;
+
+-- Responsable des attractions
+
+CREATE ROLE responsable_attractions;
+
+-- Gestionnaire des ressources humaines
+
+CREATE ROLE gestionnaire_rh;
+
+-- Clients
+
+CREATE ROLE clients;
 
 -- Requêtes
 

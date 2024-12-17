@@ -1,4 +1,4 @@
--- Liste de tous les triggers définies
+-- Liste de tous les triggers définis
 
 BEGIN
     DBMS_OUTPUT.PUT_LINE('Liste des triggers par table :');

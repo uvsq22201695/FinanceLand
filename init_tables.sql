@@ -23,9 +23,31 @@ BEGIN
     FOR seq_name IN (
         SELECT sequence_name
         FROM user_sequences
-        WHERE sequence_name IN ('SEQUENCE_ID_ATTRACTION')
+        WHERE sequence_name IN ('SEQUENCE_ID_ATTRACTION', 'SEQUENCE_ID_TRAVAUX','SEQUENCE_ID_CLIENT')
     ) LOOP
         v_sql := 'DROP SEQUENCE ' || seq_name.sequence_name;
+        EXECUTE IMMEDIATE v_sql;
+    END LOOP;
+END;
+/
+
+-- Suppression des rôles existants
+DECLARE
+    v_sql VARCHAR2(4000);
+BEGIN
+    FOR role_name IN (
+        SELECT granted_role AS role
+        FROM user_role_privs
+        WHERE granted_role IN (
+            'C##DIRIGEANTS',
+            'C##SERVICE_CLIENT',
+            'C##DIRECTEUR_PARC',
+            'C##RESPONSABLE_ATTRACTIONS',
+            'C##GESTIONNAIRE_RH',
+            'C##CLIENTS'
+        )
+    ) LOOP
+        v_sql := 'DROP ROLE ' || role_name.role;
         EXECUTE IMMEDIATE v_sql;
     END LOOP;
 END;
@@ -512,29 +534,153 @@ INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
 
 -- Droits et vues
 
+-- Vues
+
+CREATE OR REPLACE VIEW vue_travaux_par_attraction AS
+SELECT
+    a.nom AS nom_attraction,
+    t.date_debut,
+    t.date_fin,
+    t.etat,
+    t.cout
+FROM travaux t
+JOIN attraction a ON t.id_attraction = a.id_attraction;
+
+CREATE OR REPLACE VIEW vue_revenus_parc AS
+SELECT
+    p.nom AS nom_parc,
+    NVL(SUM(t.prix * (1 - NVL(r.reduction, 0))), 0) AS revenus_totaux
+FROM parc p
+LEFT JOIN billet b ON p.id_parc = b.id_parc
+LEFT JOIN tarif t ON b.tarif = t.nom_tarif
+LEFT JOIN reduction r ON b.reduction = r.nom_reduction
+GROUP BY p.nom;
+
+CREATE OR REPLACE VIEW vue_clients_commandes AS
+SELECT
+    c.id_client,
+    c.nom || ' ' || c.prenom AS nom_complet,
+    c.email,
+    COUNT(co.id_commande) AS nombre_commandes,
+    MAX(co.date_commande) AS derniere_commande
+FROM client c
+LEFT JOIN commande co ON c.id_client = co.id_client
+GROUP BY c.id_client, c.nom, c.prenom, c.email;
+
+CREATE OR REPLACE VIEW vue_travaux_en_cours AS
+SELECT
+    a.nom AS nom_attraction,
+    t.description,
+    t.date_debut,
+    t.date_fin,
+    t.cout
+FROM travaux t
+JOIN attraction a ON t.id_attraction = a.id_attraction
+WHERE t.etat = 'en cours';
+
+CREATE OR REPLACE VIEW vue_statistiques_attractions AS
+SELECT
+    nom,
+    vitesse_maximale,
+    hauteur_maximale,
+    etat,
+    capacite_horaire
+FROM attraction
+ORDER BY capacite_horaire DESC;
+
+CREATE OR REPLACE VIEW vue_employes_par_attraction AS
+SELECT
+    a.nom AS nom_attraction,
+    e.nom || ' ' || e.prenom AS nom_complet_employe,
+    e.telephone,
+    e.email
+FROM employe e
+JOIN attraction a ON e.id_attraction = a.id_attraction;
+
+CREATE OR REPLACE VIEW vue_salaire_employes_parc AS
+SELECT
+    p.nom AS nom_parc,
+    e.nom || ' ' || e.prenom AS nom_complet_employe,
+    c.salaire,
+    c.type AS type_contrat
+FROM employe e
+JOIN parc p ON e.id_parc = p.id_parc
+JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale;
+
+CREATE OR REPLACE VIEW vue_mes_billets AS
+SELECT
+    b.id_billet,
+    b.id_parc,
+    b.date_debut_validite,
+    b.date_fin_validite,
+    b.tarif,
+    b.reduction
+FROM billet b
+JOIN commande c ON b.id_commande = c.id_commande
+JOIN client cl ON c.id_client = cl.id_client
+WHERE cl.email = :email; -- Filtre les billets selon l'email de l'utilisateur connecté.
+
 -- Dirigeants
 
-CREATE ROLE dirigeants;
+CREATE ROLE C##dirigeants;
+
+GRANT SELECT ON parc TO C##dirigeants;
+GRANT SELECT ON attraction TO C##dirigeants;
+GRANT SELECT ON employe TO C##dirigeants;
+GRANT SELECT ON travaux TO C##dirigeants;
+
+GRANT UPDATE, INSERT ON parc TO C##dirigeants;
+
+GRANT SELECT ON vue_revenus_parc TO C##dirigeants;
+GRANT SELECT ON vue_travaux_par_attraction TO C##dirigeants;
 
 -- Service clientèle
 
-CREATE ROLE service_client;
+CREATE ROLE C##service_client;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON billet TO C##service_client;
+GRANT SELECT, INSERT, UPDATE, DELETE ON commande TO C##service_client;
+GRANT SELECT ON client TO C##service_client;
+
+GRANT SELECT ON vue_clients_commandes TO C##service_client;
 
 -- Directeur de parc
 
-CREATE ROLE directeur_parc;
+CREATE ROLE C##directeur_parc;
+
+GRANT SELECT, UPDATE, DELETE ON attraction TO C##directeur_parc;
+GRANT SELECT, UPDATE, DELETE ON employe TO C##directeur_parc;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tarif TO C##directeur_parc;
+GRANT SELECT, INSERT, UPDATE, DELETE ON reduction TO C##directeur_parc;
+GRANT SELECT, INSERT, UPDATE, DELETE ON parc TO C##directeur_parc;
+
+GRANT SELECT ON vue_travaux_en_cours TO C##directeur_parc;
 
 -- Responsable des attractions
 
-CREATE ROLE responsable_attractions;
+CREATE ROLE C##responsable_attractions;
+
+GRANT SELECT, UPDATE ON attraction TO C##responsable_attractions;
+GRANT SELECT, UPDATE ON travaux TO C##responsable_attractions;
+GRANT SELECT, UPDATE ON employe TO C##responsable_attractions;
+
+GRANT SELECT ON vue_statistiques_attractions TO C##responsable_attractions;
+GRANT SELECT ON vue_employes_par_attraction TO C##responsable_attractions;
 
 -- Gestionnaire des ressources humaines
 
-CREATE ROLE gestionnaire_rh;
+CREATE ROLE C##gestionnaire_rh;
+
+GRANT SELECT, INSERT, UPDATE ON employe TO C##gestionnaire_rh;
+GRANT SELECT, INSERT, UPDATE, DELETE ON contrat TO C##gestionnaire_rh;
+
+GRANT SELECT ON vue_salaire_employes_parc TO C##gestionnaire_rh;
 
 -- Clients
 
-CREATE ROLE clients;
+CREATE ROLE C##clients;
+
+GRANT SELECT ON vue_mes_billets TO C##clients;
 
 -- Requêtes
 

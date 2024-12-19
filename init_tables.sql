@@ -178,7 +178,7 @@ CREATE TABLE contrat (
     salaire NUMBER,
     type VARCHAR2(50),
     CONSTRAINT chk_contrat_salaire_non_negatif CHECK (salaire > 0),
-    CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'stage', 'alternance', 'interim')),
+    CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'Stage', 'Alternance', 'Interim')),
     CONSTRAINT chk_contrat_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
     CONSTRAINT fk_contrat_employe FOREIGN KEY (numero_de_securite_sociale) REFERENCES employe(numero_de_securite_sociale)
 );
@@ -295,6 +295,30 @@ begin
         update attraction set etat = 'ouverte' where id_attraction = :new.id_attraction;
     end if;
 end;
+
+-- Trigger si une commande possède 8 billets ou plus sur un même date, tous les billets profitent d’une réduction
+-- de 20% sur leur prix.
+CREATE OR REPLACE TRIGGER trg_reduction_billet
+AFTER INSERT OR UPDATE ON billet
+FOR EACH ROW
+DECLARE
+    v_nb_billets NUMBER;
+BEGIN
+    -- Vérifie le nombre de billets pour la même commande et la même date
+    SELECT COUNT(*)
+    INTO v_nb_billets
+    FROM billet
+    WHERE id_commande = :NEW.id_commande
+      AND date_debut_validite = :NEW.date_debut_validite;
+
+    -- Si le nombre de billets atteint 8 ou plus, applique la réduction
+    IF v_nb_billets >= 8 THEN
+        UPDATE billet
+        SET reduction = 'groupe' -- Réduction de 10 % pour le groupe
+        WHERE id_commande = :NEW.id_commande
+          AND date_debut_validite = :NEW.date_debut_validite;
+    END IF;
+END;
 
 -- Insertions
 
@@ -588,11 +612,11 @@ INSERT INTO contrat VALUES (43, 100000043, DATE '2021-03-01', NULL, 'Manager', 3
 
 -- Insertions réductions
 
-INSERT INTO reduction VALUES ('étudiant', 0.3, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('étudiant', 0.1, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('enfant', 0.5, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 -- Droits et vues

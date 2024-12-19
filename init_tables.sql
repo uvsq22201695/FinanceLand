@@ -149,7 +149,6 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
-    -- CONSTRAINT chk_travaux_date_deb check ()
 ); -- FAIRE TRIGGER
 
 -- Création de la table 'employe'
@@ -165,7 +164,8 @@ CREATE TABLE employe (
     ville VARCHAR2(100),
     pays VARCHAR2(100),
     CONSTRAINT fk_employe_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
-    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
+    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction),
+    CONSTRAINT chk_employe_parc UNIQUE (id_parc)
 );
 
 -- Création de la table 'contrat'
@@ -747,11 +747,13 @@ JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale
 WHERE c.date_fin >= SYSDATE AND c.date_fin <= SYSDATE + INTERVAL '3' MONTH;
 
 -- 11 S’il n’y avait pas de tarif étudiant, combien chaque parc aurait-il gagné en plus ?
--- select p.NOM, sum(t.prix) as gain_si_tarif_etudiant_non_existant
--- from parc p, billet b, reduction r, tarif t
--- where p.id_parc = b.id_parc and b.tarif = r.nom_reduction and (select prix from tarif)
--- group by p.NOM;
-
+SELECT p.NOM AS nom_parc,SUM(CASE WHEN r.nom_reduction = 'étudiant' THEN t.prix ELSE 0 END) AS gain_si_tarif_etudiant_non_existant
+FROM parc p
+JOIN billet b ON p.id_parc = b.id_parc
+JOIN reduction r ON b.tarif = r.nom_reduction
+JOIN tarif t ON b.tarif = t.nom_tarif
+GROUP BY
+    p.NOM;
 
 -- 12 Quel parc a le plus grand nombre d'attractions avec des inversions ?
 SELECT p.nom, COUNT(a.id_attraction) AS nb_attractions_inversions

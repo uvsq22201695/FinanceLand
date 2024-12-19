@@ -299,7 +299,6 @@ end;
 -- Insertions
 
 -- Insertions parc
-
 INSERT INTO parc VALUES (1, 'Phantasialand', DATE '1967-04-30', 28, 'Allemagne', 'Brülh');
 INSERT INTO parc VALUES (2, 'Europa-Park', DATE '1975-07-12', 95, 'Allemagne', 'Rust');
 INSERT INTO parc VALUES (3, 'Disneyland Paris', DATE '1992-04-12', 2230, 'France', 'Marne-la-Vallée');
@@ -323,7 +322,6 @@ INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
 
 -- Insertions clients
-
 INSERT INTO client VALUES (sequence_id_client.nextval, 'john.doe@example.com', 'Doe', 'John', '123 Main Street', '555-0101', 'Springfield', 'USA');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'jane.smith@example.com', 'Smith', 'Jane', '456 Elm Street', '555-0202', 'Shelbyville', 'USA');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'emily.johnson@example.com', 'Johnson', 'Emily', '789 Oak Avenue', '555-0303', 'Ogdenville', 'Canada');
@@ -334,6 +332,26 @@ INSERT INTO client VALUES (sequence_id_client.nextval, 'lisa.taylor@example.com'
 INSERT INTO client VALUES (sequence_id_client.nextval, 'paul.martin@example.com', 'Martin', 'Paul', '246 Aspen Court', '555-0808', 'Ogdenville', 'Ireland');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'laura.thomas@example.com', 'Thomas', 'Laura', '357 Birch Way', '555-0909', 'North Haverbrook', 'France');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'james.moore@example.com', 'Moore', 'James', '468 Cherry Street', '555-1010', 'Capital City', 'Germany');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'ana.robin@example.com', 'Robin', 'Ana', '10 Rue Jean Moulin', '0756123487', 'Grenoble', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'marc.garcia@example.com', 'Garcia', 'Marc', '11 Rue de Provence', '0623456790', 'Dijon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'elise.benoit@example.com', 'Benoit', 'Elise', '12 Rue des Carmes', '0645236789', 'Le Havre', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'nathan.morel@example.com', 'Morel', 'Nathan', '13 Rue du Marché', '0634236789', 'Toulon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'ines.bernard@example.com', 'Bernard', 'Ines', '14 Rue Saint-Honoré', '0612234789', 'Saint-Étienne', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'emilie.martinez@example.com', 'Martinez', 'Emilie', '15 Rue de la République', '0698123456', 'Rennes', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'mathieu.fabre@example.com', 'Fabre', 'Mathieu', '16 Rue de Metz', '0623456789', 'Aix-en-Provence', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'lea.clement@example.com', 'Clément', 'Lea', '17 Rue des Peupliers', '0678236789', 'Montpellier', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'juliette.david@example.com', 'David', 'Juliette', '18 Rue des Acacias', '0654123678', 'Orléans', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'maxime.renard@example.com', 'Renard', 'Maxime', '19 Avenue de l''Europe', '0687345678', 'Clermont-Ferrand', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'emilie.dupuis@example.com', 'Dupuis', 'Emilie', '20 Rue des Lilas', '0645123789', 'Nancy', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'vincent.robert@example.com', 'Robert', 'Vincent', '21 Rue des Tulipes', '0698123478', 'Metz', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'sophie.lopez@example.com', 'Lopez', 'Sophie', '22 Boulevard Gambetta', '0634234789', 'Tours', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'lucas.navarro@example.com', 'Navarro', 'Lucas', '23 Rue des Mimosas', '0687345789', 'Angers', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'melanie.dumont@example.com', 'Dumont', 'Melanie', '24 Avenue Jules Ferry', '0623456897', 'Perpignan', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'etienne.guillaume@example.com', 'Guillaume', 'Etienne', '25 Rue de Lorraine', '0654123489', 'Limoges', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'florence.roger@example.com', 'Roger', 'Florence', '26 Rue de l''Abbaye', '0678123467', 'Béziers', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'quentin.lefevre@example.com', 'Lefevre', 'Quentin', '27 Rue de la Liberté', '0689234789', 'Pau', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'helene.durieux@example.com', 'Durieux', 'Helene', '28 Rue des Vignes', '0612234689', 'Avignon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'thibault.rousseau@example.com', 'Rousseau', 'Thibault', '29 Rue des Marronniers', '0698123467', 'Valence', 'France');
 
 -- Insertions attractions
 
@@ -490,6 +508,50 @@ INSERT INTO employe VALUES(100000042, 14, 21, 'Renaud', 'Victor', '0234567890', 
 INSERT INTO employe VALUES(100000043, 1, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
 
 -- Insertions contrats
+
+    INSERT INTO contrat VALUES (1, 100000001, DATE '2022-01-01', DATE '2024-01-01', 'Technicien', 2500, 'CDI');
+INSERT INTO contrat VALUES (2, 100000002, DATE '2021-05-01', DATE '2023-05-01', 'Manager', 3500, 'CDD');
+INSERT INTO contrat VALUES (3, 100000003, DATE '2020-09-01', NULL, 'Agent d''entretien', 1800, 'CDI');
+INSERT INTO contrat VALUES (4, 100000004, DATE '2022-06-15', DATE '2023-06-15', 'Responsable attraction', 3200, 'Stage');
+INSERT INTO contrat VALUES (5, 100000005, DATE '2023-02-01', NULL, 'Administrateur', 4000, 'Alternance');
+INSERT INTO contrat VALUES (6, 100000006, DATE '2021-09-01', DATE '2022-09-01', 'Technicien', 2700, 'CDD');
+INSERT INTO contrat VALUES (7, 100000007, DATE '2023-03-01', NULL, 'Manager', 3600, 'CDI');
+INSERT INTO contrat VALUES (8, 100000008, DATE '2020-07-01', DATE '2023-07-01', 'Agent d''entretien', 1900, 'CDD');
+INSERT INTO contrat VALUES (9, 100000009, DATE '2022-05-01', NULL, 'Responsable attraction', 3400, 'CDI');
+INSERT INTO contrat VALUES (10, 100000010, DATE '2023-01-15', DATE '2023-12-31', 'Administrateur', 4100, 'Stage');
+INSERT INTO contrat VALUES (11, 100000011, DATE '2021-11-01', DATE '2022-11-01', 'Technicien', 2600, 'CDD');
+INSERT INTO contrat VALUES (12, 100000012, DATE '2022-10-01', DATE '2024-10-01', 'Manager', 3700, 'CDI');
+INSERT INTO contrat VALUES (13, 100000013, DATE '2021-06-15', DATE '2023-06-15', 'Agent d''entretien', 2000, 'CDD');
+INSERT INTO contrat VALUES (14, 100000014, DATE '2022-03-01', DATE '2022-12-31', 'Responsable attraction', 3300, 'Stage');
+INSERT INTO contrat VALUES (15, 100000015, DATE '2020-09-01', NULL, 'Administrateur', 4200, 'Alternance');
+INSERT INTO contrat VALUES (16, 100000016, DATE '2023-02-01', DATE '2024-02-01', 'Technicien', 2800, 'CDI');
+INSERT INTO contrat VALUES (17, 100000017, DATE '2022-01-01', DATE '2023-01-01', 'Manager', 3800, 'CDD');
+INSERT INTO contrat VALUES (18, 100000018, DATE '2021-08-01', NULL, 'Agent d''entretien', 2100, 'CDI');
+INSERT INTO contrat VALUES (19, 100000019, DATE '2022-11-01', DATE '2024-11-01', 'Responsable attraction', 3500, 'CDD');
+INSERT INTO contrat VALUES (20, 100000020, DATE '2020-04-01', DATE '2022-04-01', 'Administrateur', 4300, 'CDI');
+INSERT INTO contrat VALUES (21, 100000021, DATE '2021-10-01', DATE '2022-10-01', 'Technicien', 2400, 'CDD');
+INSERT INTO contrat VALUES (22, 100000022, DATE '2022-06-01', DATE '2024-06-01', 'Manager', 3900, 'Alternance');
+INSERT INTO contrat VALUES (23, 100000023, DATE '2020-12-01', DATE '2023-12-01', 'Agent d''entretien', 2200, 'CDI');
+INSERT INTO contrat VALUES (24, 100000024, DATE '2021-07-01', DATE '2022-07-01', 'Responsable attraction', 3100, 'Stage');
+INSERT INTO contrat VALUES (25, 100000025, DATE '2022-03-01', NULL, 'Administrateur', 4400, 'CDI');
+INSERT INTO contrat VALUES (26, 100000026, DATE '2023-01-15', DATE '2023-12-15', 'Technicien', 2900, 'CDD');
+INSERT INTO contrat VALUES (27, 100000027, DATE '2020-09-01', DATE '2022-09-01', 'Manager', 4000, 'CDI');
+INSERT INTO contrat VALUES (28, 100000028, DATE '2021-11-01', DATE '2023-11-01', 'Agent d''entretien', 2300, 'CDD');
+INSERT INTO contrat VALUES (29, 100000029, DATE '2022-02-01', DATE '2024-02-01', 'Responsable attraction', 3600, 'Alternance');
+INSERT INTO contrat VALUES (30, 100000030, DATE '2021-08-01', NULL, 'Administrateur', 4500, 'CDI');
+INSERT INTO contrat VALUES (31, 100000031, DATE '2022-03-01', DATE '2024-03-01', 'Technicien', 2500, 'CDI');
+INSERT INTO contrat VALUES (32, 100000032, DATE '2023-01-15', NULL, 'Responsable attraction', 3200, 'Alternance');
+INSERT INTO contrat VALUES (33, 100000033, DATE '2022-06-01', DATE '2023-06-01', 'Manager', 3500, 'CDD');
+INSERT INTO contrat VALUES (34, 100000034, DATE '2021-09-01', DATE '2023-09-01', 'Agent d''entretien', 2000, 'CDD');
+INSERT INTO contrat VALUES (35, 100000035, DATE '2022-11-01', DATE '2024-11-01', 'Administrateur', 4000, 'CDI');
+INSERT INTO contrat VALUES (36, 100000036, DATE '2020-07-01', DATE '2022-07-01', 'Technicien', 2800, 'CDD');
+INSERT INTO contrat VALUES (37, 100000037, DATE '2023-05-01', NULL, 'Responsable attraction', 3300, 'CDI');
+INSERT INTO contrat VALUES (38, 100000038, DATE '2021-08-15', DATE '2023-08-15', 'Manager', 3700, 'CDD');
+INSERT INTO contrat VALUES (39, 100000039, DATE '2022-12-01', DATE '2023-12-01', 'Agent d''entretien', 2200, 'Alternance');
+INSERT INTO contrat VALUES (40, 100000040, DATE '2020-04-01', NULL, 'Administrateur', 4500, 'CDI');
+INSERT INTO contrat VALUES (41, 100000041, DATE '2023-02-01', DATE '2024-02-01', 'Technicien', 2700, 'CDD');
+INSERT INTO contrat VALUES (42, 100000042, DATE '2022-09-01', DATE '2023-09-01', 'Responsable attraction', 3600, 'CDD');
+INSERT INTO contrat VALUES (43, 100000043, DATE '2021-03-01', NULL, 'Manager', 3900, 'CDI');
 
 -- Insertions commandes
 

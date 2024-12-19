@@ -90,7 +90,8 @@ CREATE TABLE tarif (
     date_fin DATE,
     constraint ch_tarif_prix CHECK (prix > 0),
     constraint chk_tarif_duree CHECK (duree_en_jour > 0),
-    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
+    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null),
+    constraint chk_prix check (nom_tarif = 'journalier' and prix = 50 or nom_tarif = '2 jours' and prix = 80 or nom_tarif = 'annuel' and prix = 500 or nom_tarif = 'nocturne' and prix = 30 or nom_tarif = 'noel' and prix = 60)
 );
 
 -- Création de la table 'client'
@@ -148,7 +149,6 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
-    -- CONSTRAINT chk_travaux_date_deb check ()
 ); -- FAIRE TRIGGER
 
 -- Création de la table 'employe'
@@ -333,7 +333,7 @@ INSERT INTO parc VALUES (30, 'Happy Valley Wuhan', DATE '2012-04-29', 100, 'Chin
 -- Insertions tarif
 INSERT INTO tarif VALUES ('journalier', 50, 1, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('2 jours', 80, 2, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('annuel', 150, 365, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 500, 365, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('nocturne', 30, 1, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('noel', 60, 1,DATE '2024-11-15', DATE '2024-12-31');
 INSERT INTO tarif VALUES ('halloween', 60, 1, DATE '2024-10-15', DATE '2024-11-14');
@@ -542,60 +542,60 @@ INSERT INTO employe VALUES(100000042, 14, 21, 'Renaud', 'Victor', '0234567890', 
 INSERT INTO employe VALUES(100000043, 1, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
 INSERT ALL
     INTO employe VALUES (195012345678912, 3, 15, 'Martin', 'Sophie', '0123456789', 'sophie.martin@parc.fr', '123 Rue des Fleurs', 'Paris', 'France')
-    
+
     INTO employe VALUES (189012345678923, 7, 22, 'Dubois', 'Pierre', '0234567890', 'pierre.dubois@parc.fr', '45 Avenue des Champs', 'Paris', 'France')
-    
+
     INTO employe VALUES (192012345678934, 12, 35, 'Leroy', 'Marie', '0345678901', 'marie.leroy@parc.fr', '78 Boulevard Victor Hugo', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (194012345678945, 18, 42, 'Bernard', 'Thomas', '0456789012', 'thomas.bernard@parc.fr', '12 Rue du Commerce', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (193012345678956, 22, 48, 'Moreau', 'Julie', '0567890123', 'julie.moreau@parc.fr', '34 Avenue Montaigne', 'Paris', 'France')
 
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (196012345678967, 5, 10, 'Petit', 'Lucas', '0678901234', 'lucas.petit@parc.fr', '56 Rue de la République', 'Marseille', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (191012345678978, 9, 25, 'Robert', 'Emma', '0789012345', 'emma.robert@parc.fr', '89 Boulevard Haussmann', 'Marseille', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (190012345678989, 14, 38, 'Richard', 'Antoine', '0890123456', 'antoine.richard@parc.fr', '23 Rue Saint-Denis', 'Toulouse', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (195012345678990, 20, 45, 'Michel', 'Clara', '0901234567', 'clara.michel@parc.fr', '67 Avenue Foch', 'Toulouse', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (193012345679001, 25, 50, 'Laurent', 'Hugo', '0112345678', 'hugo.laurent@parc.fr', '90 Rue de Rivoli', 'Paris', 'France')
 
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (194012345679012, 2, 5, 'Lefebvre', 'Sarah', '0123456789', 'sarah.lefebvre@parc.fr', '12 Rue du Parc', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (192012345679023, 6, 18, 'Garcia', 'David', '0234567890', 'david.garcia@parc.fr', '45 Avenue des Roses', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (191012345679034, 11, 28, 'Roux', 'Laura', '0345678901', 'laura.roux@parc.fr', '78 Boulevard des Lys', 'Marseille', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (196012345679045, 16, 33, 'Bonnet', 'Nicolas', '0456789012', 'nicolas.bonnet@parc.fr', '34 Rue des Pins', 'Marseille', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (195012345679056, 21, 47, 'Muller', 'Charlotte', '0567890123', 'charlotte.muller@parc.fr', '56 Avenue du Parc', 'Toulouse', 'France')
 
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (193012345679067, 4, 8, 'Faure', 'Maxime', '0678901234', 'maxime.faure@parc.fr', '89 Rue des Ormes', 'Paris', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (194012345679078, 8, 20, 'Andre', 'Camille', '0789012345', 'camille.andre@parc.fr', '23 Boulevard des Arts', 'Paris', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (192012345679089, 13, 30, 'Mercier', 'Alexandre', '0890123456', 'alexandre.mercier@parc.fr', '67 Avenue des Lilas', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (191012345679090, 17, 40, 'Blanc', 'Léa', '0901234567', 'lea.blanc@parc.fr', '90 Rue du Château', 'Lyon', 'France')
-    
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
     VALUES (190012345679101, 23, 49, 'Guerin', 'Nathan', '0112345678', 'nathan.guerin@parc.fr', '12 Boulevard Maritime', 'Marseille', 'France')
 SELECT * FROM dual;
 
@@ -641,6 +641,7 @@ INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 -- Droits et vues
 
@@ -857,11 +858,13 @@ JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale
 WHERE c.date_fin >= SYSDATE AND c.date_fin <= SYSDATE + INTERVAL '3' MONTH;
 
 -- 11 S’il n’y avait pas de tarif étudiant, combien chaque parc aurait-il gagné en plus ?
--- select p.NOM, sum(t.prix) as gain_si_tarif_etudiant_non_existant
--- from parc p, billet b, reduction r, tarif t
--- where p.id_parc = b.id_parc and b.tarif = r.nom_reduction and (select prix from tarif)
--- group by p.NOM;
-
+SELECT p.NOM AS nom_parc,SUM(CASE WHEN r.nom_reduction = 'étudiant' THEN t.prix ELSE 0 END) AS gain_si_tarif_etudiant_non_existant
+FROM parc p
+JOIN billet b ON p.id_parc = b.id_parc
+JOIN reduction r ON b.tarif = r.nom_reduction
+JOIN tarif t ON b.tarif = t.nom_tarif
+GROUP BY
+    p.NOM;
 
 -- 12 Quel parc a le plus grand nombre d'attractions avec des inversions ?
 SELECT p.nom, COUNT(a.id_attraction) AS nb_attractions_inversions

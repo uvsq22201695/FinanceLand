@@ -91,7 +91,8 @@ CREATE TABLE tarif (
     date_fin DATE,
     constraint ch_tarif_prix CHECK (prix > 0),
     constraint chk_tarif_duree CHECK (duree_en_jour > 0),
-    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null)
+    constraint chk_date_fin CHECK (date_fin >= date_debut or date_fin is null),
+    constraint chk_prix check (nom_tarif = 'journalier' and prix = 50 or nom_tarif = '2 jours' and prix = 80 or nom_tarif = 'annuel' and prix = 500 or nom_tarif = 'nocturne' and prix = 30 or nom_tarif = 'noel' and prix = 60)
 );
 
 -- Création de la table 'client'
@@ -206,7 +207,7 @@ CREATE TABLE reduction (
     reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
-    constraint chk_reduction CHECK (reduction > 0 and reduction < 1),
+    constraint chk_reduction CHECK (reduction >= 0 and reduction < 1),
     constraint chk_reduction_date_fin CHECK (date_fin >= date_debut or date_fin is null)
 );
 
@@ -318,7 +319,7 @@ INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis
 -- Insertions tarif
 INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('annuel', 150, 365, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 500, 365, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
 INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
 
@@ -531,6 +532,7 @@ INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 -- Droits et vues
 

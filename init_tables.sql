@@ -86,7 +86,6 @@ CREATE TABLE tarif (
     nom_tarif VARCHAR2(100) PRIMARY KEY,
     prix NUMBER,
     duree_en_jour NUMBER,
-    reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
     constraint ch_tarif_prix CHECK (prix > 0),
@@ -314,13 +313,34 @@ INSERT INTO parc VALUES (11, 'Disneyland Resort', DATE '1955-07-17', 486, 'État
 INSERT INTO parc VALUES (12, 'Universal Studios Hollywood', DATE '1964-07-15', 415, 'États-Unis', 'Los Angeles');
 INSERT INTO parc VALUES (13, 'Six Flags Magic Mountain', DATE '1971-05-29', 262, 'États-Unis', 'Valencia');
 INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis', 'Sandusky');
+INSERT INTO parc VALUES (15, 'Hersheypark', DATE '1906-05-30', 121, 'États-Unis', 'Hershey');
+INSERT INTO parc VALUES (16, 'Canada''s Wonderland', DATE '1981-05-23', 134, 'Canada', 'Vaughan');
+INSERT INTO parc VALUES (17, 'La Ronde', DATE '1967-05-18', 59, 'Canada', 'Montréal');
+INSERT INTO parc VALUES (18, 'Eiftelling', DATE '1952-05-31', 72, 'Pays-Bas', 'Kaatsheuvel');
+INSERT INTO parc VALUES (19, 'Disneyland Shanghai', DATE '2016-06-16', 390, 'Chine', 'Shanghai');
+INSERT INTO parc VALUES (20, 'Tokyo Disneyland', DATE '1983-04-15', 115, 'Japon', 'Tokyo');
+INSERT INTO parc VALUES (21, 'Universal Studios Japan', DATE '2001-03-31', 54, 'Japon', 'Osaka');
+INSERT INTO parc VALUES (22, 'Everland', DATE '1976-04-20', 40, 'Corée du Sud', 'Yongin');
+INSERT INTO parc VALUES (23, 'Lotte World', DATE '1989-07-12', 29, 'Corée du Sud', 'Séoul');
+INSERT INTO parc VALUES (24, 'Ocean Park', DATE '1977-01-10', 91, 'Hong Kong', 'Wong Chuk Hang');
+INSERT INTO parc VALUES (25, 'Happy Valley Pékin', DATE '2006-07-09', 120, 'Chine', 'Pékin');
+INSERT INTO parc VALUES (26, 'Happy Valley Shenzhen', DATE '1998-07-20', 350, 'Chine', 'Shenzhen');
+INSERT INTO parc VALUES (27, 'Happy Valley Chengdu', DATE '2009-09-20', 100, 'Chine', 'Chengdu');
+INSERT INTO parc VALUES (28, 'Happy Valley Shanghai', DATE '2009-08-16', 100, 'Chine', 'Shanghai');
+INSERT INTO parc VALUES (29, 'Happy Valley Tianjin', DATE '2006-08-01', 100, 'Chine', 'Tianjin');
+INSERT INTO parc VALUES (30, 'Happy Valley Wuhan', DATE '2012-04-29', 100, 'Chine', 'Wuhan');
 
 -- Insertions tarif
-INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('annuel', 150, 365, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
+INSERT INTO tarif VALUES ('journalier', 50, 1, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('2 jours', 80, 2, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 150, 365, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('nocturne', 30, 1, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('noel', 60, 1,DATE '2024-11-15', DATE '2024-12-31');
+INSERT INTO tarif VALUES ('halloween', 60, 1, DATE '2024-10-15', DATE '2024-11-14');
+INSERT INTO tarif VALUES ('fete de la musique', 55, 1, DATE '2024-06-21', DATE '2024-06-21');
+INSERT INTO tarif VALUES ('fete du travail', 32, 1, DATE '2024-05-01', DATE '2024-05-01');
+INSERT INTO tarif VALUES ('fete nationale', 40, 1, DATE '2024-07-14', DATE '2024-07-14');
+INSERT INTO tarif VALUES ('fete de la victoire', 40, 1, DATE '2024-05-08', DATE '2024-05-08');
 
 -- Insertions clients
 
@@ -334,6 +354,38 @@ INSERT INTO client VALUES (sequence_id_client.nextval, 'lisa.taylor@example.com'
 INSERT INTO client VALUES (sequence_id_client.nextval, 'paul.martin@example.com', 'Martin', 'Paul', '246 Aspen Court', '555-0808', 'Ogdenville', 'Ireland');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'laura.thomas@example.com', 'Thomas', 'Laura', '357 Birch Way', '555-0909', 'North Haverbrook', 'France');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'james.moore@example.com', 'Moore', 'James', '468 Cherry Street', '555-1010', 'Capital City', 'Germany');
+INSERT ALL
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'jean.dupont@email.com', 'Dupont', 'Jean', '123 Rue de Paris', '0123456789', 'Paris', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'marie.martin@email.com', 'Martin', 'Marie', '45 Avenue des Champs', '0234567890', 'Lyon', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'pierre.durand@email.com', 'Durand', 'Pierre', '78 Boulevard Victor Hugo', '0345678901', 'Marseille', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sophie.petit@email.com', 'Petit', 'Sophie', '12 Rue du Commerce', '0456789012', 'Toulouse', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'lucas.bernard@email.com', 'Bernard', 'Lucas', '34 Avenue Montaigne', '0567890123', 'Bordeaux', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'emma.thomas@email.com', 'Thomas', 'Emma', '56 Rue de la République', '0678901234', 'Nice', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'louis.richard@email.com', 'Richard', 'Louis', '89 Boulevard Haussmann', '0789012345', 'Nantes', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'clara.robert@email.com', 'Robert', 'Clara', '23 Rue Saint-Denis', '0890123456', 'Strasbourg', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'hugo.michel@email.com', 'Michel', 'Hugo', '67 Avenue Foch', '0901234567', 'Montpellier', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'lea.laurent@email.com', 'Laurent', 'Léa', '90 Rue de Rivoli', '0123456789', 'Lille', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'john.smith@email.com', 'Smith', 'John', '123 Main Street', '1234567890', 'London', 'Royaume-Uni')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'emma.wilson@email.com', 'Wilson', 'Emma', '45 Oxford Street', '2345678901', 'Manchester', 'Royaume-Uni')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'hans.muller@email.com', 'Müller', 'Hans', 'Hauptstraße 123', '3456789012', 'Berlin', 'Allemagne')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sofia.ferrari@email.com', 'Ferrari', 'Sofia', 'Via Roma 45', '4567890123', 'Rome', 'Italie')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'carlos.garcia@email.com', 'Garcia', 'Carlos', 'Calle Mayor 67', '5678901234', 'Madrid', 'Espagne')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'antonio.silva@email.com', 'Silva', 'Antonio', 'Rua Lisboa 89', '6789012345', 'Lisbonne', 'Portugal')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'yuki.tanaka@email.com', 'Tanaka', 'Yuki', 'Sakura Street 12', '7890123456', 'Tokyo', 'Japon')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'maria.santos@email.com', 'Santos', 'Maria', 'Av. Paulista 1000', '8901234567', 'São Paulo', 'Brésil')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'alex.brown@email.com', 'Brown', 'Alex', '789 Queen Street', '9012345678', 'Sydney', 'Australie')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'anna.kowalski@email.com', 'Kowalski', 'Anna', 'Nowy Świat 34', '0123456789', 'Varsovie', 'Pologne')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'thomas.lefebvre@email.com', 'Lefebvre', 'Thomas', '45 Rue du Marché', '0234567890', 'Paris', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'julie.moreau@email.com', 'Moreau', 'Julie', '67 Avenue des Lilas', '0345678901', 'Lyon', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'david.williams@email.com', 'Williams', 'David', '34 High Street', '4567890123', 'Birmingham', 'Royaume-Uni')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'laura.schmidt@email.com', 'Schmidt', 'Laura', 'Berliner Straße 56', '5678901234', 'Munich', 'Allemagne')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'marco.rossi@email.com', 'Rossi', 'Marco', 'Via Venezia 78', '6789012345', 'Milan', 'Italie')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sarah.dubois@email.com', 'Dubois', 'Sarah', '23 Rue des Roses', '0456789012', 'Toulouse', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'paul.lemaire@email.com', 'Lemaire', 'Paul', '89 Avenue Victor Hugo', '0567890123', 'Nice', 'France')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'james.taylor@email.com', 'Taylor', 'James', '56 Baker Street', '7890123456', 'London', 'Royaume-Uni')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'julia.wagner@email.com', 'Wagner', 'Julia', 'Frankfurter Allee 90', '8901234567', 'Hamburg', 'Allemagne')
+    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'giuseppe.conti@email.com', 'Conti', 'Giuseppe', 'Via Napoli 45', '9012345678', 'Florence', 'Italie')
+SELECT * FROM dual;
 
 -- Insertions attractions
 
@@ -488,6 +540,64 @@ INSERT INTO employe VALUES(100000040, 12, 10, 'Antoine', 'Eve', '0112345678', 'e
 INSERT INTO employe VALUES(100000041, 13, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis');
 INSERT INTO employe VALUES(100000042, 14, 21, 'Renaud', 'Victor', '0234567890', 'victor.renaud@example.com', '420 Cedar Avenue', 'Sandusky', 'États-Unis');
 INSERT INTO employe VALUES(100000043, 1, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT ALL
+    INTO employe VALUES (195012345678912, 3, 15, 'Martin', 'Sophie', '0123456789', 'sophie.martin@parc.fr', '123 Rue des Fleurs', 'Paris', 'France')
+    
+    INTO employe VALUES (189012345678923, 7, 22, 'Dubois', 'Pierre', '0234567890', 'pierre.dubois@parc.fr', '45 Avenue des Champs', 'Paris', 'France')
+    
+    INTO employe VALUES (192012345678934, 12, 35, 'Leroy', 'Marie', '0345678901', 'marie.leroy@parc.fr', '78 Boulevard Victor Hugo', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (194012345678945, 18, 42, 'Bernard', 'Thomas', '0456789012', 'thomas.bernard@parc.fr', '12 Rue du Commerce', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (193012345678956, 22, 48, 'Moreau', 'Julie', '0567890123', 'julie.moreau@parc.fr', '34 Avenue Montaigne', 'Paris', 'France')
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (196012345678967, 5, 10, 'Petit', 'Lucas', '0678901234', 'lucas.petit@parc.fr', '56 Rue de la République', 'Marseille', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (191012345678978, 9, 25, 'Robert', 'Emma', '0789012345', 'emma.robert@parc.fr', '89 Boulevard Haussmann', 'Marseille', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (190012345678989, 14, 38, 'Richard', 'Antoine', '0890123456', 'antoine.richard@parc.fr', '23 Rue Saint-Denis', 'Toulouse', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (195012345678990, 20, 45, 'Michel', 'Clara', '0901234567', 'clara.michel@parc.fr', '67 Avenue Foch', 'Toulouse', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (193012345679001, 25, 50, 'Laurent', 'Hugo', '0112345678', 'hugo.laurent@parc.fr', '90 Rue de Rivoli', 'Paris', 'France')
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (194012345679012, 2, 5, 'Lefebvre', 'Sarah', '0123456789', 'sarah.lefebvre@parc.fr', '12 Rue du Parc', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (192012345679023, 6, 18, 'Garcia', 'David', '0234567890', 'david.garcia@parc.fr', '45 Avenue des Roses', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (191012345679034, 11, 28, 'Roux', 'Laura', '0345678901', 'laura.roux@parc.fr', '78 Boulevard des Lys', 'Marseille', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (196012345679045, 16, 33, 'Bonnet', 'Nicolas', '0456789012', 'nicolas.bonnet@parc.fr', '34 Rue des Pins', 'Marseille', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (195012345679056, 21, 47, 'Muller', 'Charlotte', '0567890123', 'charlotte.muller@parc.fr', '56 Avenue du Parc', 'Toulouse', 'France')
+
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (193012345679067, 4, 8, 'Faure', 'Maxime', '0678901234', 'maxime.faure@parc.fr', '89 Rue des Ormes', 'Paris', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (194012345679078, 8, 20, 'Andre', 'Camille', '0789012345', 'camille.andre@parc.fr', '23 Boulevard des Arts', 'Paris', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (192012345679089, 13, 30, 'Mercier', 'Alexandre', '0890123456', 'alexandre.mercier@parc.fr', '67 Avenue des Lilas', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (191012345679090, 17, 40, 'Blanc', 'Léa', '0901234567', 'lea.blanc@parc.fr', '90 Rue du Château', 'Lyon', 'France')
+    
+    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays) 
+    VALUES (190012345679101, 23, 49, 'Guerin', 'Nathan', '0112345678', 'nathan.guerin@parc.fr', '12 Boulevard Maritime', 'Marseille', 'France')
+SELECT * FROM dual;
 
 -- Insertions contrats
 

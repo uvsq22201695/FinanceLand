@@ -165,8 +165,7 @@ CREATE TABLE employe (
     ville VARCHAR2(100),
     pays VARCHAR2(100),
     CONSTRAINT fk_employe_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
-    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction),
-    CONSTRAINT chk_employe_parc UNIQUE (id_parc)
+    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
 );
 
 -- Création de la table 'contrat'

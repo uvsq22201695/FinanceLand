@@ -298,27 +298,70 @@ end;
 
 -- Trigger si une commande possède 8 billets ou plus sur un même date, tous les billets profitent d’une réduction
 -- de 20% sur leur prix.
+
 CREATE OR REPLACE TRIGGER trg_reduction_billet
-AFTER INSERT OR UPDATE ON billet
+FOR INSERT OR UPDATE ON billet
+COMPOUND TRIGGER
+    TYPE billet_data IS RECORD (
+        id_commande NUMBER,
+        date_debut_validite DATE
+    );
+    TYPE billet_data_table IS TABLE OF billet_data INDEX BY PLS_INTEGER;
+    affected_rows billet_data_table;
+    -- BEFORE EACH ROW: Collect the affected rows
+    BEFORE EACH ROW IS
+    BEGIN
+        affected_rows(affected_rows.COUNT + 1).id_commande := :NEW.id_commande;
+        affected_rows(affected_rows.COUNT).date_debut_validite := :NEW.date_debut_validite;
+    END BEFORE EACH ROW;
+    -- AFTER STATEMENT: Perform the checks and updates
+    AFTER STATEMENT IS
+    BEGIN
+        -- Use a temporary table to avoid duplicate rows
+        FOR i IN affected_rows.FIRST .. affected_rows.LAST LOOP
+            DECLARE
+                v_nb_billets NUMBER;
+            BEGIN
+                -- Check the number of billets for the same commande and date
+                SELECT COUNT(*)
+                INTO v_nb_billets
+                FROM billet
+                WHERE id_commande = affected_rows(i).id_commande
+                  AND date_debut_validite = affected_rows(i).date_debut_validite;
+                -- Apply the reduction if the threshold is reached
+                IF v_nb_billets >= 8 THEN
+                    UPDATE billet
+                    SET reduction = 'groupe' -- Réduction de groupe
+                    WHERE id_commande = affected_rows(i).id_commande
+                      AND date_debut_validite = affected_rows(i).date_debut_validite;
+                END IF;
+            END;
+        END LOOP;
+    END AFTER STATEMENT;
+END trg_reduction_billet;
+/
+
+-- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date
+
+CREATE OR REPLACE TRIGGER trg_billet_enfant
+BEFORE INSERT OR UPDATE ON billet
 FOR EACH ROW
 DECLARE
-    v_nb_billets NUMBER;
+    normal_or_student_count NUMBER;
 BEGIN
-    -- Vérifie le nombre de billets pour la même commande et la même date
-    SELECT COUNT(*)
-    INTO v_nb_billets
-    FROM billet
-    WHERE id_commande = :NEW.id_commande
-      AND date_debut_validite = :NEW.date_debut_validite;
-
-    -- Si le nombre de billets atteint 8 ou plus, applique la réduction
-    IF v_nb_billets >= 8 THEN
-        UPDATE billet
-        SET reduction = 'groupe' -- Réduction de 10 % pour le groupe
+    IF :NEW.reduction = 'enfant' THEN
+        SELECT COUNT(*)
+        INTO normal_or_student_count
+        FROM billet
         WHERE id_commande = :NEW.id_commande
-          AND date_debut_validite = :NEW.date_debut_validite;
+          AND date_debut_validite = :NEW.date_debut_validite
+          AND reduction IN ('normal', 'étudiant');
+        IF normal_or_student_count = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date.');
+        END IF;
     END IF;
 END;
+/
 
 -- Insertions
 
@@ -658,6 +701,14 @@ INSERT INTO commande VALUES (50, 29, DATE '2023-12-20');
 --     COMMIT;
 -- END;
 -- /
+-- Insertions réductions
+
+INSERT INTO reduction VALUES ('étudiant', 0.1, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('enfant', 0.5, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 -- Insertions dans la table billets
 
@@ -665,6 +716,7 @@ INSERT INTO billet VALUES (1, 3, 12, DATE '2023-12-01', DATE '2023-12-01', 'jour
 INSERT INTO billet VALUES (2, 5, 17, DATE '2023-12-05', DATE '2023-12-06', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (3, 10, 21, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'famille', 0);
 INSERT INTO billet VALUES (4, 1, 4, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'senior', 1);
+INSERT INTO billet VALUES (71, 7, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (5, 7, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'enfant', 0);
 INSERT INTO billet VALUES (6, 14, 43, DATE '2023-12-25', DATE '2023-12-26', 'annuel', 'étudiant', 0);
 INSERT INTO billet VALUES (7, 11, 8, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'famille', 0);
@@ -676,11 +728,13 @@ INSERT INTO billet VALUES (12, 8, 1, DATE '2023-12-18', DATE '2023-12-19', 'annu
 INSERT INTO billet VALUES (13, 5, 7, DATE '2023-12-11', DATE '2023-12-11', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (14, 2, 13, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 1);
 INSERT INTO billet VALUES (15, 9, 28, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'famille', 0);
+INSERT INTO billet values (72, 12, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'étudiant', 0);
 INSERT INTO billet VALUES (16, 12, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
 INSERT INTO billet VALUES (17, 10, 35, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'étudiant', 1);
 INSERT INTO billet VALUES (18, 14, 6, DATE '2023-12-12', DATE '2023-12-13', 'annuel', 'groupe', 0);
 INSERT INTO billet VALUES (19, 6, 19, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (20, 4, 15, DATE '2023-12-05', DATE '2023-12-05', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (79, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'normal', 0);
 INSERT INTO billet VALUES (21, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'enfant', 0);
 INSERT INTO billet VALUES (22, 7, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'étudiant', 0);
 INSERT INTO billet VALUES (23, 2, 3, DATE '2023-12-23', DATE '2023-12-23', 'nocturne', 'groupe', 1);
@@ -688,6 +742,7 @@ INSERT INTO billet VALUES (24, 11, 22, DATE '2023-12-29', DATE '2023-12-30', 'an
 INSERT INTO billet VALUES (25, 9, 38, DATE '2023-12-06', DATE '2023-12-06', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (26, 5, 10, DATE '2023-12-12', DATE '2023-12-13', '2 jours', 'famille', 0);
 INSERT INTO billet VALUES (27, 13, 47, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'étudiant', 1);
+INSERT INTO billet VALUES (74, 8, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'étudiant', 0);
 INSERT INTO billet VALUES (28, 8, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'enfant', 0);
 INSERT INTO billet VALUES (29, 10, 2, DATE '2023-12-27', DATE '2023-12-27', 'nocturne', 'groupe', 0);
 INSERT INTO billet VALUES (30, 12, 40, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'famille', 1);
@@ -696,6 +751,7 @@ INSERT INTO billet VALUES (32, 1, 5, DATE '2023-12-07', DATE '2023-12-07', '2 jo
 INSERT INTO billet VALUES (33, 7, 13, DATE '2023-12-15', DATE '2023-12-15', 'noel', 'senior', 1);
 INSERT INTO billet VALUES (34, 3, 37, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'groupe', 0);
 INSERT INTO billet VALUES (35, 9, 9, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (75, 8, 16, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (36, 8, 16, DATE '2023-12-03', DATE '2023-12-03', 'annuel', 'enfant', 1);
 INSERT INTO billet VALUES (37, 6, 20, DATE '2023-12-10', DATE '2023-12-11', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (38, 12, 24, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'normal', 0);
@@ -706,12 +762,14 @@ INSERT INTO billet VALUES (42, 13, 28, DATE '2023-12-14', DATE '2023-12-14', 'jo
 INSERT INTO billet VALUES (43, 14, 19, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'famille', 1);
 INSERT INTO billet VALUES (44, 10, 8, DATE '2023-12-09', DATE '2023-12-10', 'noel', 'étudiant', 0);
 INSERT INTO billet VALUES (45, 7, 26, DATE '2023-12-13', DATE '2023-12-13', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (80, 3, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (46, 3, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'enfant', 0);
 INSERT INTO billet VALUES (47, 1, 15, DATE '2023-12-26', DATE '2023-12-27', 'annuel', 'famille', 1);
 INSERT INTO billet VALUES (48, 5, 2, DATE '2023-12-06', DATE '2023-12-07', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (49, 6, 12, DATE '2023-12-15', DATE '2023-12-15', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (50, 8, 39, DATE '2023-12-29', DATE '2023-12-29', 'noel', 'étudiant', 1);
 INSERT INTO billet VALUES (51, 14, 31, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (76, 9, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (52, 9, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'enfant', 0);
 INSERT INTO billet VALUES (53, 12, 48, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 1);
 INSERT INTO billet VALUES (54, 10, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'senior', 0);
@@ -722,6 +780,7 @@ INSERT INTO billet VALUES (58, 4, 27, DATE '2023-12-07', DATE '2023-12-07', 'jou
 INSERT INTO billet VALUES (59, 3, 45, DATE '2023-12-14', DATE '2023-12-14', 'noel', 'famille', 0);
 INSERT INTO billet VALUES (60, 5, 35, DATE '2023-12-29', DATE '2023-12-29', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (61, 8, 25, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
+INSERT INTO billet VALUES (77, 2, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (62, 2, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'enfant', 0);
 INSERT INTO billet VALUES (63, 11, 40, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'senior', 1);
 INSERT INTO billet VALUES (64, 14, 9, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'famille', 0);
@@ -730,16 +789,9 @@ INSERT INTO billet VALUES (66, 13, 41, DATE '2023-12-22', DATE '2023-12-23', '2 
 INSERT INTO billet VALUES (67, 9, 46, DATE '2023-12-04', DATE '2023-12-04', 'journalier', 'senior', 1);
 INSERT INTO billet VALUES (68, 7, 3, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'famille', 0);
 INSERT INTO billet VALUES (69, 6, 10, DATE '2023-12-19', DATE '2023-12-19', 'annuel', 'étudiant', 0);
-INSERT INTO billet VALUES (70, 12, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 1);
+insert into billet values (78, 12, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (70, 12, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
 
--- Insertions réductions
-
-INSERT INTO reduction VALUES ('étudiant', 0.1, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('enfant', 0.5, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 -- Droits et vues
 

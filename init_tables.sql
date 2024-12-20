@@ -385,6 +385,55 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER trg_empêcher_entrée_si_attraction_fermée_ou_travaux
+BEFORE INSERT ON tourniquet
+FOR EACH ROW
+DECLARE
+    v_etat_attraction VARCHAR2(50);
+BEGIN
+    -- Récupérer l'état de l'attraction associée
+    SELECT etat
+    INTO v_etat_attraction
+    FROM attraction
+    WHERE id_attraction = :NEW.id_attraction;
+
+    -- Vérifier si l'attraction est "fermée" ou "en travaux"
+    IF v_etat_attraction IN ('fermée', 'en travaux') THEN
+        -- Si l'attraction est fermée ou en travaux, lever une erreur
+        RAISE_APPLICATION_ERROR(-20003, 'Impossible d''enregistrer une entrée pour une attraction fermée ou en travaux.');
+    END IF;
+END;
+
+
+-- création d'une vue temps d'attente par attraction en se basant sur les tourniquets et la capacité horaire des attractions
+CREATE OR REPLACE VIEW vue_temps_attente AS
+SELECT
+    a.nom AS nom_attraction,
+    ROUND(((COUNT(t.id_attraction)-COUNT(t2.id_attraction)) / a.capacite_horaire) * 60, 2) AS temps_attente_moyen
+FROM attraction a
+LEFT JOIN tourniquet t ON a.id_attraction = t.id_attraction
+LEFT JOIN tourniquet t2 ON a.id_attraction = t2.id_attraction AND t2.entree_ou_sortie = 'sortie'
+WHERE t.entree_ou_sortie = 'entrée'
+GROUP BY a.nom, a.capacite_horaire;
+
+
+select * from vue_temps_attente;
+
+SELECT a.nom, entrees.nb_entrees, sorties.nb_sorties
+FROM attraction a
+LEFT JOIN (
+    SELECT t.id_attraction, COUNT(*) AS nb_entrees
+    FROM tourniquet t
+    WHERE t.entree_ou_sortie = 'entrée'
+    GROUP BY t.id_attraction
+) entrees ON a.id_attraction = entrees.id_attraction
+LEFT JOIN (
+    SELECT t.id_attraction, COUNT(*) AS nb_sorties
+    FROM tourniquet t
+    WHERE t.entree_ou_sortie = 'sortie'
+    GROUP BY t.id_attraction
+) sorties ON a.id_attraction = sorties.id_attraction;
+
 -- Insertions
 
 -- Insertions parc
@@ -1247,3 +1296,14 @@ FROM (
     GROUP BY p.nom, c.nom, c.prenom
 ) parc_fideles
 WHERE parc_fideles.rang_client = 1;
+
+-- Création d'une vue temps d'attente par attraction en fonction de la capacité horaire et des tourniquets
+CREATE OR REPLACE VIEW vue_temps_attente AS
+SELECT
+    a.nom AS nom_attraction,
+    ROUND(((COUNT(t.id_attraction)-COUNT(t2.id_attraction)) / a.capacite_horaire) * 60, 2) AS temps_attente_moyen
+FROM attraction a
+LEFT JOIN tourniquet t ON a.id_attraction = t.id_attraction
+LEFT JOIN tourniquet t2 ON a.id_attraction = t2.id_attraction AND t2.entree_ou_sortie = 'sortie'
+WHERE t.entree_ou_sortie = 'entrée'
+GROUP BY a.nom, a.capacite_horaire;

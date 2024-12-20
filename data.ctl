@@ -98,3 +98,184 @@ FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
 100000041, 30, "Navarro", "Chloe", "0123456789", "chloe.navarro@example.com", "410 Six Flags Road", "Valencia", "États-Unis")
 100000042, 21, "Renaud", "Victor", "0234567890", "victor.renaud@example.com", "420 Cedar Avenue", "Sandusky", "États-Unis")
 100000043, 9, "Lemoine", "Anais", "0345678901", "anais.lemoine@example.com", "430 Brühl Avenue", "Brühl", "Allemagne")
+
+LOAD DATA
+INFILE *
+APPEND
+INTO TABLE attraction
+FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
+(id_attraction, nom, date_ouverture DATE "YYYY-MM-DD", constructeur, vitesse_maximale, capacite_horaire, force_g_maximale, hauteur_maximale, nombre_de_train, personnes_par_train, nombre_inversion, longueur, type, duree, etat, id_parc)
+BEGIN DATA
+1,Black Mamba,2006-04-01,Bolliger & Mabillard,80,1500,4.5,27,2,32,6,779,Inverted Coaster,3,ouverte,1
+2,Taron,2016-06-30,Intamin,117,1200,4.5,30,2,32,0,1349,Launched Coaster,3,ouverte,1
+3,Raik,2016-06-30,Gerstlauer,60,1000,3.5,25,2,16,0,682,Family Coaster,2,ouverte,1
+4,Chiapas,2014-04-01,Intamin,53,1200,3.5,20,2,20,0,850,Log Flume,3,ouverte,1
+5,Colorado Adventure,1996-04-01,Intamin,45,1200,3.5,20,2,20,0,1180,Mine Train,3,ouverte,1
+6,Winja's Fear & Force,2006-04-01,Maurer AG,40,1200,3.5,20,2,20,0,1180,Spinning Coaster,3,ouverte,1
+7,Maus au Chocolat,2011-04-01,Mack Rides,10,1200,0,0,9,12,0,350,Interactive Dark Ride,9,ouverte,1
+8,F.L.Y.,2020-09-17,Vekoma,100,1200,4.5,40,2,16,0,1230,Flying Coaster,3,ouverte,1
+9,River Quest,2002-04-01,Intamin,20,1200,0,22,18,9,0,440,River Rapids,6,ouverte,1
+10,Blue Fire Megacoaster,2009-04-04,Mack Rides,100,1720,3.8,38,5,20,4,1056,Launched Coaster,140,ouverte,2
+11,Silver Star,2002-03-23,Bolliger & Mabillard,127,1750,4,73,3,36,0,1620,Hyper Coaster,360,ouverte,2
+12,Wodan Timbur Coaster,2012-03-31,Great Coasters International,100,1250,3.5,40,3,24,0,1050,Wooden Coaster,150,ouverte,2
+13,Eurosat - CanCan Coaster,1989-09-12,Mack Rides,60,1280,4,25.5,7,14,0,922,Dark Ride,198,ouverte,2
+14,Euro-Mir,1997-06-12,Mack Rides,80,1600,4,28.30,9,16,0,984,Spinning Coaster,273,ouverte,2
+15,Voltron Nevera,2024-04-24,Mack Rides,100,1600,4.2,32.50,7,16,7,1385,Launched Coaster,180,ouverte,2
+16,Hyperspace Mountain,1995-06-01,Vekoma,76,2400,2.7,31,5,24,2,1000,Launched Coaster,237,ouverte,3
+17,Big Thunder Mountain,1992-04-12,Vekoma,65,2424,1.9,22,5,30,0,1205,Mine Train,236,ouverte,3
+18,Pirates of the Caribbean,1992-04-01,Intamin,30,3400,1.95,10,50,24,0,1000,Dark Ride,630,ouverte,3
+19,Phantom Manor,1992-04-12,Vekoma,2,2200,1,5.64,130,2,0,239,Omnimover,360,ouverte,3
+20,Indiana Jones et le Temple du Péril,1993-07-30,Intamin,58,1440,3.2,18,7,12,1,566,Mad Mouse,74,ouverte,3
+21,Avengers Assemble,2002-03-16,Vekoma,91,1800,5,24.40,5,24,3,1037,Dark Ride,70,ouverte,3
+22,Casey Jr. - le Petit Train du Cirque,1994-04-12,Vekoma,45,1440,1.1,3,2,34,0,522,Family Coaster,120,ouverte,3
+23,Crushs Coaster,2007-06-09,Maurer Rides,61,895,1.5,15.50,11,4,0,550,Spinning Coaster,140,ouverte,3
+24,OzIris,2012-04-07,Bolliger & Mabillard,90,1600,3.2,40,3,32,5,1000,Inverted Coaster,135,ouverte,4
+25,Pégase Express,2017-06-11,Gerstlauer,52,1200,2.1,20,4,20,0,928,Family Coaster,120,ouverte,4
+26,Tonnerre 2 Zeus,1997-04-07,Custom Coasters International,90,1440,2.1,29.90,2,24,0,1232.60,Wooden Coaster,125,ouverte,4
+27,Goudurix,1989-04-30,Vekoma,90,1100,4.5,36.10,2,28,7,950,Steel Coaster,80,ouverte,4
+28,Trace du Hourra,2001-03-31,Mack Rides,60,1500,1.8,31,5,14,0,900,Bobsleigh,170,ouverte,4
+29,Menhir Express,1995-04-07,Hopkins Ride,36,1200,0,13,30,4,0,627,Log Flume,300,ouverte,4
+30,Grand Splatch,1989-04-30,Intamin,42,1400,3.5,11,9,20,0,627,Log Flume,360,ouverte,4
+31,Toutatis,2023-04-08,Intamin,110,1260,1.1,51,3,20,3,1075,Launched Coaster,123,ouverte,4
+32,Le vol d'Icare,1994-04-07,Zierer,42,1150,1,10.70,5,4,0,410,Family Coaster,75,ouverte,4
+33,SOS Tournevis,1990-04-30,Zierer,32,1000,1.2,6,1,30,0,199,Family Coaster,90,ouverte,4
+34,Romus et Rapidus,2004-04-07,Hopkins Ride,22,1200,0,13,30,4,0,627,Log Flume,300,ouverte,4
+
+LOAD DATA
+INFILE *
+APPEND
+INTO TABLE client
+FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
+(id_client, email, nom, prenom, date_naissance DATE "YYYY-MM-DD", adresse, telephone, ville, pays)
+BEGIN DATA
+1, 'john.doe@example.com', 'Doe', 'John', '123 Main Street', '555-0101', 'Springfield', 'USA'
+2, 'jane.smith@example.com', 'Smith', 'Jane', '456 Elm Street', '555-0202', 'Shelbyville', 'USA'
+3, 'emily.johnson@example.com', 'Johnson', 'Emily', '789 Oak Avenue', '555-0303', 'Ogdenville', 'Canada'
+4, 'michael.brown@example.com', 'Brown', 'Michael', '321 Pine Lane', '555-0404', 'North Haverbrook', 'USA'
+5, 'sarah.davis@example.com', 'Davis', 'Sarah', '654 Maple Boulevard', '555-0505', 'Capital City', 'UK'
+6, 'david.wilson@example.com', 'Wilson', 'David', '987 Cedar Road', '555-0606', 'Springfield', 'Australia'
+7, 'lisa.taylor@example.com', 'Taylor', 'Lisa', '135 Willow Circle', '555-0707', 'Shelbyville', 'New Zealand'
+8, 'paul.martin@example.com', 'Martin', 'Paul', '246 Aspen Court', '555-0808', 'Ogdenville', 'Ireland'
+9, 'laura.thomas@example.com', 'Thomas', 'Laura', '357 Birch Way', '555-0909', 'North Haverbrook', 'France'
+10, 'james.moore@example.com', 'Moore', 'James', '468 Cherry Street', '555-1010', 'Capital City', 'Germany'
+11, 'ana.robin@example.com', 'Robin', 'Ana', '10 Rue Jean Moulin', '0756123487', 'Grenoble', 'France'
+12, 'marc.garcia@example.com', 'Garcia', 'Marc', '11 Rue de Provence', '0623456790', 'Dijon', 'France'
+13, 'elise.benoit@example.com', 'Benoit', 'Elise', '12 Rue des Carmes', '0645236789', 'Le Havre', 'France'
+14, 'nathan.morel@example.com', 'Morel', 'Nathan', '13 Rue du Marché', '0634236789', 'Toulon', 'France'
+15, 'ines.bernard@example.com', 'Bernard', 'Ines', '14 Rue Saint-Honoré', '0612234789', 'Saint-Étienne', 'France'
+16, 'emilie.martinez@example.com', 'Martinez', 'Emilie', '15 Rue de la République', '0698123456', 'Rennes', 'France'
+17, 'mathieu.fabre@example.com', 'Fabre', 'Mathieu', '16 Rue de Metz', '0623456789', 'Aix-en-Provence', 'France'
+18, 'lea.clement@example.com', 'Clément', 'Lea', '17 Rue des Peupliers', '0678236789', 'Montpellier', 'France'
+19, 'juliette.david@example.com', 'David', 'Juliette', '18 Rue des Acacias', '0654123678', 'Orléans', 'France'
+20, 'maxime.renard@example.com', 'Renard', 'Maxime', '19 Avenue de l''Europe', '0687345678', 'Clermont-Ferrand', 'France'
+21, 'emilie.dupuis@example.com', 'Dupuis', 'Emilie', '20 Rue des Lilas', '0645123789', 'Nancy', 'France'
+22, 'vincent.robert@example.com', 'Robert', 'Vincent', '21 Rue des Tulipes', '0698123478', 'Metz', 'France'
+23, 'sophie.lopez@example.com', 'Lopez', 'Sophie', '22 Boulevard Gambetta', '0634234789', 'Tours', 'France'
+24, 'lucas.navarro@example.com', 'Navarro', 'Lucas', '23 Rue des Mimosas', '0687345789', 'Angers', 'France'
+25, 'melanie.dumont@example.com', 'Dumont', 'Melanie', '24 Avenue Jules Ferry', '0623456897', 'Perpignan', 'France'
+26, 'etienne.guillaume@example.com', 'Guillaume', 'Etienne', '25 Rue de Lorraine', '0654123489', 'Limoges', 'France'
+27, 'florence.roger@example.com', 'Roger', 'Florence', '26 Rue de l''Abbaye', '0678123467', 'Béziers', 'France'
+28, 'quentin.lefevre@example.com', 'Lefevre', 'Quentin', '27 Rue de la Liberté', '0689234789', 'Pau', 'France'
+29, 'helene.durieux@example.com', 'Durieux', 'Helene', '28 Rue des Vignes', '0612234689', 'Avignon', 'France'
+30, 'thibault.rousseau@example.com', 'Rousseau', 'Thibault', '29 Rue des Marronniers', '0698123467', 'Valence', 'France'
+
+
+LOAD DATA
+INFILE *
+APPEND
+INTO TABLE billet
+FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
+(id_billet, id_parc, id_commande, date_debut_validite DATE "YYYY-MM-DD", date_fin_validite DATE "YYYY-MM-DD", tarif, reduction, scanne)
+BEGIN DATA
+1, 1, 12, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0
+2, 2, 17, DATE '2023-12-05', DATE '2023-12-06', '2 jours', 'étudiant', 0
+3, 3, 21, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 0
+4, 4, 4, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'senior', 1
+71, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0
+5, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'enfant', 0
+6, 2, 43, DATE '2023-12-25', DATE '2023-12-26', 'annuel', 'étudiant', 0
+7, 3, 8, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0
+78, 3, 8, DATE '2022-12-01', DATE '2022-12-01', 'journalier', 'normal', 1
+8, 4, 10, DATE '2023-12-04', DATE '2023-12-05', '2 jours', 'normal', 1
+9, 1, 14, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'senior', 0
+10, 2, 20, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0
+11, 3, 29, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0
+12, 4, 1, DATE '2023-12-18', DATE '2023-12-19', 'annuel', 'étudiant', 1
+13, 1, 7, DATE '2023-12-11', DATE '2023-12-11', 'journalier', 'senior', 0
+14, 2, 13, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 1
+15, 3, 28, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'normal', 0
+72, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'étudiant', 0
+16, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0
+17, 1, 35, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'étudiant', 1
+18, 2, 6, DATE '2023-12-12', DATE '2023-12-13', 'annuel', 'normal', 0
+19, 3, 19, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0
+20, 4, 15, DATE '2023-12-05', DATE '2023-12-05', '2 jours', 'normal', 0
+79, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'normal', 0
+21, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'enfant', 0
+22, 2, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'étudiant', 0
+23, 3, 3, DATE '2023-12-23', DATE '2023-12-23', 'nocturne', 'normal', 1
+24, 4, 22, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'normal', 0
+25, 1, 38, DATE '2023-12-06', DATE '2023-12-06', 'journalier', 'senior', 0
+26, 2, 10, DATE '2023-12-12', DATE '2023-12-13', '2 jours', 'normal', 0
+27, 3, 47, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'étudiant', 1
+73, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'étudiant', 0
+28, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'enfant', 0
+29, 1, 2, DATE '2023-12-27', DATE '2023-12-27', 'nocturne', 'normal', 0
+30, 2, 40, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'normal', 1
+31, 3, 48, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0
+32, 4, 5, DATE '2023-12-07', DATE '2023-12-07', '2 jours', 'normal', 0
+33, 1, 13, DATE '2023-12-15', DATE '2023-12-15', 'noel', 'senior', 1
+34, 2, 37, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'normal', 0
+35, 3, 9, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'normal', 0
+74, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0
+36, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'annuel', 'enfant', 1
+37, 1, 20, DATE '2023-12-10', DATE '2023-12-11', '2 jours', 'étudiant', 0
+38, 2, 24, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'normal', 0
+39, 3, 11, DATE '2023-12-28', DATE '2023-12-28', 'journalier', 'normal', 0
+40, 4, 41, DATE '2023-12-04', DATE '2023-12-04', 'nocturne', 'normal', 1
+41, 1, 18, DATE '2023-12-07', DATE '2023-12-07', 'annuel', 'senior', 0
+42, 2, 28, DATE '2023-12-14', DATE '2023-12-14', 'journalier', 'normal', 0
+43, 3, 19, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'normal', 1
+44, 4, 8, DATE '2023-12-09', DATE '2023-12-10', 'noel', 'étudiant', 0
+45, 1, 26, DATE '2023-12-13', DATE '2023-12-13', 'journalier', 'senior', 0
+80, 2, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0
+46, 3, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'enfant', 0
+47, 4, 15, DATE '2023-12-26', DATE '2023-12-27', 'annuel', 'normal', 1
+48, 1, 2, DATE '2023-12-06', DATE '2023-12-07', '2 jours', 'normal', 0
+49, 2, 12, DATE '2023-12-15', DATE '2023-12-15', 'journalier', 'senior', 0
+50, 3, 39, DATE '2023-12-29', DATE '2023-12-29', 'noel', 'étudiant', 1
+51, 4, 31, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'normal', 0
+75, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0
+52, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'enfant', 0
+53, 2, 48, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 1
+54, 3, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'senior', 0
+55, 4, 6, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'normal', 0
+56, 1, 5, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'normal', 1
+57, 2, 14, DATE '2023-12-02', DATE '2023-12-03', '2 jours', 'normal', 0
+58, 3, 27, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'senior', 0
+59, 4, 45, DATE '2023-12-14', DATE '2023-12-14', 'noel', 'normal', 0
+60, 1, 35, DATE '2023-12-29', DATE '2023-12-29', 'journalier', 'normal', 0
+61, 2, 25, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0
+76, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'normal', 0
+62, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'enfant', 0
+63, 4, 40, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'senior', 1
+64, 1, 9, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'normal', 0
+65, 2, 37, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'normal', 0
+66, 3, 41, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 0
+67, 4, 46, DATE '2023-12-04', DATE '2023-12-04', 'journalier', 'senior', 1
+68, 1, 3, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0
+69, 2, 10, DATE '2023-12-19', DATE '2023-12-19', 'annuel', 'étudiant', 0
+77, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'normal', 0
+70, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0
+81, 4, 34, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'normal', 1
+82, 4, 36, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 1
+83, 4, 49, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'senior', 1
+84, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'étudiant', 1
+85, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'enfant', 1
+86, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'senior', 1
+87, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
+88, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
+89, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
+90, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
+91, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
+

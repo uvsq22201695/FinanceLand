@@ -882,7 +882,17 @@ INSERT INTO billet VALUES (68, 1, 3, DATE '2023-12-15', DATE '2023-12-15', 'noct
 INSERT INTO billet VALUES (69, 2, 10, DATE '2023-12-19', DATE '2023-12-19', 'annuel', 'étudiant', 0);
 insert into billet values (77, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (70, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
-
+INSERT INTO billet VALUES (81, 4, 34, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'normal', 1);
+INSERT INTO billet VALUES (82, 4, 36, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 1);
+INSERT INTO billet VALUES (83, 4, 49, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'senior', 1);
+INSERT INTO billet VALUES (84, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'étudiant', 1);
+INSERT INTO billet VALUES (85, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'enfant', 1);
+INSERT INTO billet VALUES (86, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'senior', 1);
+INSERT INTO billet VALUES (87, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1);
+INSERT INTO billet VALUES (88, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1);
+INSERT INTO billet VALUES (89, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1);
+INSERT INTO billet VALUES (90, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1);
+INSERT INTO billet VALUES (91, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1);
 
 -- Droits et vues
 

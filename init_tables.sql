@@ -186,8 +186,10 @@ CREATE TABLE commande (
     id_client NUMBER,
     date_commande DATE,
     montant_total NUMBER,
+    nb_billets NUMBER,
     CONSTRAINT fk_commande_client FOREIGN KEY (id_client) REFERENCES client(id_client),
-    CONSTRAINT chk_commande_montant_total CHECK (montant_total > 0)
+    CONSTRAINT chk_commande_montant_total CHECK (montant_total >= 0),
+    CONSTRAINT chk_commande_nb_billets_total CHECK (nb_billets >= 0)
 );
 
 -- Création de la table 'tourniquet'
@@ -320,11 +322,12 @@ END;
 
 -- Trigger pour calculer le prix total d'une commande
 CREATE OR REPLACE TRIGGER trg_calcul_prix_total_commande
-BEFORE INSERT OR UPDATE ON billet
+AFTER INSERT OR UPDATE ON billet
 FOR EACH ROW
 DECLARE
     v_prix NUMBER; -- Variable pour le prix du billet actuel
     v_reduction NUMBER; -- Variable pour la réduction éventuelle
+    v_nb_billets NUMBER; -- Variable pour le nombre de billets
 BEGIN
     -- Récupérer le prix du tarif du billet
     SELECT t.prix, NVL(r.reduction, 0)
@@ -339,8 +342,20 @@ BEGIN
     IF INSERTING THEN
         -- Ajouter le prix du billet à la commande
         UPDATE commande
-        SET montant_total = NVL(montant_total, 0) + v_prix
+        SET montant_total = NVL(montant_total, 0) + v_prix,
+            nb_billets = NVL(nb_billets, 0) + 1
         WHERE id_commande = :NEW.id_commande;
+
+        SELECT nb_billets
+        INTO v_nb_billets
+        FROM commande
+        WHERE id_commande = :NEW.id_commande;
+
+        IF v_nb_billets = 8 THEN
+            UPDATE commande
+            SET montant_total = commande.montant_total * (1 - 0.10)
+            WHERE id_commande = :NEW.id_commande;
+        end if;
 
     ELSIF UPDATING THEN
         -- Calculer la différence entre l'ancien et le nouveau prix du billet
@@ -647,56 +662,56 @@ INSERT INTO contrat VALUES (43, 100000043, DATE '2021-03-01', NULL, 'Manager', 3
 
 -- Insertions commandes
 
-INSERT INTO commande VALUES (1, 12, DATE '2023-11-01', NULL);
-INSERT INTO commande VALUES (2, 7, DATE '2023-11-02', NULL);
-INSERT INTO commande VALUES (3, 23, DATE '2023-11-03', NULL);
-INSERT INTO commande VALUES (4, 5, DATE '2023-11-04', NULL);
-INSERT INTO commande VALUES (5, 19, DATE '2023-11-05', NULL);
-INSERT INTO commande VALUES (6, 15, DATE '2023-11-06', NULL);
-INSERT INTO commande VALUES (7, 8, DATE '2023-11-07', NULL);
-INSERT INTO commande VALUES (8, 27, DATE '2022-11-08', NULL);
-INSERT INTO commande VALUES (9, 1, DATE '2023-11-09', NULL);
-INSERT INTO commande VALUES (10, 29, DATE '2023-11-10', NULL);
-INSERT INTO commande VALUES (11, 6, DATE '2023-11-11', NULL);
-INSERT INTO commande VALUES (12, 18, DATE '2023-11-12', NULL);
-INSERT INTO commande VALUES (13, 14, DATE '2023-11-13', NULL);
-INSERT INTO commande VALUES (14, 21, DATE '2023-11-14', NULL);
-INSERT INTO commande VALUES (15, 9, DATE '2023-11-15', NULL);
-INSERT INTO commande VALUES (16, 3, DATE '2023-11-16', NULL);
-INSERT INTO commande VALUES (17, 10, DATE '2023-11-17', NULL);
-INSERT INTO commande VALUES (18, 22, DATE '2023-11-18', NULL);
-INSERT INTO commande VALUES (19, 26, DATE '2023-11-19', NULL);
-INSERT INTO commande VALUES (20, 4, DATE '2023-11-20', NULL);
-INSERT INTO commande VALUES (21, 25, DATE '2023-11-21', NULL);
-INSERT INTO commande VALUES (22, 2, DATE '2023-11-22', NULL);
-INSERT INTO commande VALUES (23, 17, DATE '2023-11-23', NULL);
-INSERT INTO commande VALUES (24, 13, DATE '2023-11-24', NULL);
-INSERT INTO commande VALUES (25, 19, DATE '2023-11-25', NULL);
-INSERT INTO commande VALUES (26, 11, DATE '2023-11-26', NULL);
-INSERT INTO commande VALUES (27, 29, DATE '2023-11-27', NULL);
-INSERT INTO commande VALUES (28, 16, DATE '2023-11-28', NULL);
-INSERT INTO commande VALUES (29, 8, DATE '2023-11-29', NULL);
-INSERT INTO commande VALUES (30, 20, DATE '2023-11-30', NULL);
-INSERT INTO commande VALUES (31, 5, DATE '2023-12-01', NULL);
-INSERT INTO commande VALUES (32, 24, DATE '2023-12-02', NULL);
-INSERT INTO commande VALUES (33, 12, DATE '2023-12-03', NULL);
-INSERT INTO commande VALUES (34, 28, DATE '2023-12-04', NULL);
-INSERT INTO commande VALUES (35, 7, DATE '2023-12-05', NULL);
-INSERT INTO commande VALUES (36, 2, DATE '2023-12-06', NULL);
-INSERT INTO commande VALUES (37, 9, DATE '2023-12-07', NULL);
-INSERT INTO commande VALUES (38, 15, DATE '2023-12-08', NULL);
-INSERT INTO commande VALUES (39, 1, DATE '2023-12-09', NULL);
-INSERT INTO commande VALUES (40, 19, DATE '2023-12-10', NULL);
-INSERT INTO commande VALUES (41, 14, DATE '2023-12-11', NULL);
-INSERT INTO commande VALUES (42, 22, DATE '2023-12-12', NULL);
-INSERT INTO commande VALUES (43, 3, DATE '2023-12-13', NULL);
-INSERT INTO commande VALUES (44, 10, DATE '2023-12-14', NULL);
-INSERT INTO commande VALUES (45, 18, DATE '2023-12-15', NULL);
-INSERT INTO commande VALUES (46, 21, DATE '2023-12-16', NULL);
-INSERT INTO commande VALUES (47, 27, DATE '2023-12-17', NULL);
-INSERT INTO commande VALUES (48, 6, DATE '2023-12-18', NULL);
-INSERT INTO commande VALUES (49, 11, DATE '2023-12-19', NULL);
-INSERT INTO commande VALUES (50, 29, DATE '2023-12-20', NULL);
+INSERT INTO commande VALUES (1, 12, DATE '2023-11-01', 0, 0);
+INSERT INTO commande VALUES (2, 7, DATE '2023-11-02', 0, 0);
+INSERT INTO commande VALUES (3, 23, DATE '2023-11-03', 0, 0);
+INSERT INTO commande VALUES (4, 5, DATE '2023-11-04', 0, 0);
+INSERT INTO commande VALUES (5, 19, DATE '2023-11-05', 0, 0);
+INSERT INTO commande VALUES (6, 15, DATE '2023-11-06', 0, 0);
+INSERT INTO commande VALUES (7, 8, DATE '2023-11-07', 0, 0);
+INSERT INTO commande VALUES (8, 27, DATE '2022-11-08', 0, 0);
+INSERT INTO commande VALUES (9, 1, DATE '2023-11-09', 0, 0);
+INSERT INTO commande VALUES (10, 29, DATE '2023-11-10', 0, 0);
+INSERT INTO commande VALUES (11, 6, DATE '2023-11-11', 0, 0);
+INSERT INTO commande VALUES (12, 18, DATE '2023-11-12', 0, 0);
+INSERT INTO commande VALUES (13, 14, DATE '2023-11-13', 0, 0);
+INSERT INTO commande VALUES (14, 21, DATE '2023-11-14', 0, 0);
+INSERT INTO commande VALUES (15, 9, DATE '2023-11-15', 0, 0);
+INSERT INTO commande VALUES (16, 3, DATE '2023-11-16', 0, 0);
+INSERT INTO commande VALUES (17, 10, DATE '2023-11-17', 0, 0);
+INSERT INTO commande VALUES (18, 22, DATE '2023-11-18', 0, 0);
+INSERT INTO commande VALUES (19, 26, DATE '2023-11-19', 0, 0);
+INSERT INTO commande VALUES (20, 4, DATE '2023-11-20', 0, 0);
+INSERT INTO commande VALUES (21, 25, DATE '2023-11-21', 0, 0);
+INSERT INTO commande VALUES (22, 2, DATE '2023-11-22', 0, 0);
+INSERT INTO commande VALUES (23, 17, DATE '2023-11-23', 0, 0);
+INSERT INTO commande VALUES (24, 13, DATE '2023-11-24', 0, 0);
+INSERT INTO commande VALUES (25, 19, DATE '2023-11-25', 0, 0);
+INSERT INTO commande VALUES (26, 11, DATE '2023-11-26', 0, 0);
+INSERT INTO commande VALUES (27, 29, DATE '2023-11-27', 0, 0);
+INSERT INTO commande VALUES (28, 16, DATE '2023-11-28', 0, 0);
+INSERT INTO commande VALUES (29, 8, DATE '2023-11-29', 0, 0);
+INSERT INTO commande VALUES (30, 20, DATE '2023-11-30', 0, 0);
+INSERT INTO commande VALUES (31, 5, DATE '2023-12-01', 0, 0);
+INSERT INTO commande VALUES (32, 24, DATE '2023-12-02', 0, 0);
+INSERT INTO commande VALUES (33, 12, DATE '2023-12-03', 0, 0);
+INSERT INTO commande VALUES (34, 28, DATE '2023-12-04', 0, 0);
+INSERT INTO commande VALUES (35, 7, DATE '2023-12-05', 0, 0);
+INSERT INTO commande VALUES (36, 2, DATE '2023-12-06', 0, 0);
+INSERT INTO commande VALUES (37, 9, DATE '2023-12-07', 0, 0);
+INSERT INTO commande VALUES (38, 15, DATE '2023-12-08', 0, 0);
+INSERT INTO commande VALUES (39, 1, DATE '2023-12-09', 0, 0);
+INSERT INTO commande VALUES (40, 19, DATE '2023-12-10', 0, 0);
+INSERT INTO commande VALUES (41, 14, DATE '2023-12-11', 0, 0);
+INSERT INTO commande VALUES (42, 22, DATE '2023-12-12', 0, 0);
+INSERT INTO commande VALUES (43, 3, DATE '2023-12-13', 0, 0);
+INSERT INTO commande VALUES (44, 10, DATE '2023-12-14', 0, 0);
+INSERT INTO commande VALUES (45, 18, DATE '2023-12-15', 0, 0);
+INSERT INTO commande VALUES (46, 21, DATE '2023-12-16', 0, 0);
+INSERT INTO commande VALUES (47, 27, DATE '2023-12-17', 0, 0);
+INSERT INTO commande VALUES (48, 6, DATE '2023-12-18', 0, 0);
+INSERT INTO commande VALUES (49, 11, DATE '2023-12-19', 0, 0);
+INSERT INTO commande VALUES (50, 29, DATE '2023-12-20', 0, 0);
 
 -- Insertions tourniquets
 
@@ -1232,3 +1247,9 @@ FROM (
     GROUP BY p.nom, c.nom, c.prenom
 ) parc_fideles
 WHERE parc_fideles.rang_client = 1;
+
+SELECT *
+FROM commande
+WHERE id_commande = 50;
+
+

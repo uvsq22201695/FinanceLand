@@ -341,7 +341,8 @@ COMPOUND TRIGGER
 END trg_reduction_billet;
 /
 
--- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date
+-- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date,
+-- C'est-à-dire qu'un billet "enfant" ne peut pas être acheté seul, il a besoin d'un accompagnateur.
 
 CREATE OR REPLACE TRIGGER trg_billet_enfant
 BEFORE INSERT OR UPDATE ON billet

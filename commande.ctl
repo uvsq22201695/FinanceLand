@@ -1,10 +1,11 @@
 LOAD DATA
+CHARACTERSET UTF8
 INFILE *
 APPEND
 INTO TABLE commande
 FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
 (id_commande, id_client, date_commande DATE "YYYY-MM-DD", montant_total, nb_billets)
-BEGIN DATA
+BEGINDATA
 1, 12, DATE '2023-11-01', 0, 0
 2, 7, DATE '2023-11-02', 0, 0
 3, 23, DATE '2023-11-03', 0, 0

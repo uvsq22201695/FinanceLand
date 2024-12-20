@@ -1247,9 +1247,3 @@ FROM (
     GROUP BY p.nom, c.nom, c.prenom
 ) parc_fideles
 WHERE parc_fideles.rang_client = 1;
-
-SELECT *
-FROM commande
-WHERE id_commande = 50;
-
-

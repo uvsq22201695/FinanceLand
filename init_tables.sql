@@ -293,53 +293,6 @@ begin
     end if;
 end;
 
--- Trigger si une commande possède 8 billets ou plus sur un même date, tous les billets profitent d’une réduction
--- de 20% sur leur prix.
---
--- CREATE OR REPLACE TRIGGER trg_reduction_billet
--- FOR INSERT OR UPDATE ON billet
--- COMPOUND TRIGGER
---     TYPE billet_data IS RECORD (
---         id_commande NUMBER,
---         date_debut_validite DATE
---     );
---     TYPE billet_data_table IS TABLE OF billet_data INDEX BY PLS_INTEGER;
---     affected_rows billet_data_table;
---     -- BEFORE EACH ROW: Collect the affected rows
---     BEFORE EACH ROW IS
---     BEGIN
---         affected_rows(affected_rows.COUNT + 1).id_commande := :NEW.id_commande;
---         affected_rows(affected_rows.COUNT).date_debut_validite := :NEW.date_debut_validite;
---     END BEFORE EACH ROW;
---     -- AFTER STATEMENT: Perform the checks and updates
---     AFTER STATEMENT IS
---     BEGIN
---         -- Use a temporary table to avoid duplicate rows
---         FOR i IN affected_rows.FIRST .. affected_rows.LAST LOOP
---             DECLARE
---                 v_nb_billets NUMBER;
---             BEGIN
---                 -- Check the number of billets for the same commande and date
---                 SELECT COUNT(*)
---                 INTO v_nb_billets
---                 FROM billet
---                 WHERE id_commande = affected_rows(i).id_commande
---                   AND date_debut_validite = affected_rows(i).date_debut_validite;
---                 -- Apply the reduction if the threshold is reached
---                 IF v_nb_billets >= 8 THEN
---                     UPDATE billet
---                     SET reduction = 'groupe' -- Réduction de groupe
---                     WHERE id_commande = affected_rows(i).id_commande
---                       AND date_debut_validite = affected_rows(i).date_debut_validite;
---                 END IF;
---             END;
---         END LOOP;
---     END AFTER STATEMENT;
--- END trg_reduction_billet;
--- /
-
-
-
 -- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date,
 -- C'est-à-dire qu'un billet "enfant" ne peut pas être acheté seul, il a besoin d'un accompagnateur.
 
@@ -695,37 +648,105 @@ INSERT INTO commande VALUES (49, 11, DATE '2023-12-19');
 INSERT INTO commande VALUES (50, 29, DATE '2023-12-20');
 
 -- Insertions tourniquets
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
-        VALUES (
-    TRUNC(DBMS_RANDOM.VALUE(1, (SELECT MAX(id_attraction) FROM attraction) + 1)),
-            TO_DATE(
-                TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
-                'YYYY-MM-DD HH24:MI:SS'
-            ), -- Heure entre 09:00:00 et 19:59:59
-            CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
-                ELSE 'sortie'
-            END
-        );
-        i := i + 1;
-    END LOOP;
-    COMMIT;
-END;
-/
+
+-- Code PL/SQL pour générer beaucoup de données dans la table tourniquet
+
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
+--         VALUES (
+--     TRUNC(DBMS_RANDOM.VALUE(1, (SELECT MAX(id_attraction) FROM attraction) + 1)),
+--             TO_DATE(
+--                 TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
+--                 'YYYY-MM-DD HH24:MI:SS'
+--             ), -- Heure entre 09:00:00 et 19:59:59
+--             CASE
+--                 WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
+--                 ELSE 'sortie'
+--             END
+--         );
+--         i := i + 1;
+--     END LOOP;
+--     COMMIT;
+-- END;
+-- /
+
+-- Sinon INSERT
+
+-- Attraction 1: Plusieurs entrées/sorties
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 09:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 10:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 2: Une seule entrée
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (2, TO_DATE('2023-12-01 11:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Attraction 3: Pas d'entrée
+-- Pas d'INSERT pour cette attraction.
+
+-- Attraction 4: Une entrée/sortie
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (4, TO_DATE('2023-12-01 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (4, TO_DATE('2023-12-01 12:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 5: Nombreuses entrées/sorties
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 09:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 09:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 10:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 11:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Attraction 6: Pas d'entrée
+-- Pas d'INSERT pour cette attraction.
+
+-- Attraction 7: Peu de passages
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (7, TO_DATE('2023-12-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (7, TO_DATE('2023-12-01 14:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 8: Une seule sortie
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (8, TO_DATE('2023-12-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 9: Beaucoup d'entrées
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 09:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 09:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 10:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Répétition avec d'autres attractions
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (10, TO_DATE('2023-12-01 09:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (10, TO_DATE('2023-12-01 09:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (11, TO_DATE('2023-12-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (12, TO_DATE('2023-12-01 10:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (12, TO_DATE('2023-12-01 11:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (13, TO_DATE('2023-12-01 11:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (14, TO_DATE('2023-12-01 12:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (15, TO_DATE('2023-12-01 12:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (16, TO_DATE('2023-12-01 13:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (17, TO_DATE('2023-12-01 13:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (18, TO_DATE('2023-12-01 14:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (19, TO_DATE('2023-12-01 14:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (20, TO_DATE('2023-12-01 15:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (21, TO_DATE('2023-12-01 15:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (22, TO_DATE('2023-12-01 16:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (23, TO_DATE('2023-12-01 16:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (24, TO_DATE('2023-12-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (25, TO_DATE('2023-12-01 17:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (26, TO_DATE('2023-12-01 18:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (27, TO_DATE('2023-12-01 18:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (28, TO_DATE('2023-12-01 19:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (29, TO_DATE('2023-12-01 19:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (30, TO_DATE('2023-12-01 20:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
 
 -- Insertions réductions
 
 INSERT INTO reduction VALUES ('étudiant', 0.1, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('enfant', 0.5, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
@@ -733,81 +754,81 @@ INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
 
 INSERT INTO billet VALUES (1, 1, 12, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (2, 2, 17, DATE '2023-12-05', DATE '2023-12-06', '2 jours', 'étudiant', 0);
-INSERT INTO billet VALUES (3, 3, 21, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'famille', 0);
+INSERT INTO billet VALUES (3, 3, 21, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 0);
 INSERT INTO billet VALUES (4, 4, 4, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'senior', 1);
 INSERT INTO billet VALUES (71, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (5, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'enfant', 0);
 INSERT INTO billet VALUES (6, 2, 43, DATE '2023-12-25', DATE '2023-12-26', 'annuel', 'étudiant', 0);
-INSERT INTO billet VALUES (7, 3, 8, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'famille', 0);
-INSERT INTO billet VALUES (78, 3, 8, DATE '2022-12-01', DATE '2022-12-01', 'journalier', 'famille', 1);
-INSERT INTO billet VALUES (8, 4, 10, DATE '2023-12-04', DATE '2023-12-05', '2 jours', 'groupe', 1);
+INSERT INTO billet VALUES (7, 3, 8, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (78, 3, 8, DATE '2022-12-01', DATE '2022-12-01', 'journalier', 'normal', 1);
+INSERT INTO billet VALUES (8, 4, 10, DATE '2023-12-04', DATE '2023-12-05', '2 jours', 'normal', 1);
 INSERT INTO billet VALUES (9, 1, 14, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'senior', 0);
 INSERT INTO billet VALUES (10, 2, 20, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0);
-INSERT INTO billet VALUES (11, 3, 29, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (11, 3, 29, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (12, 4, 1, DATE '2023-12-18', DATE '2023-12-19', 'annuel', 'étudiant', 1);
 INSERT INTO billet VALUES (13, 1, 7, DATE '2023-12-11', DATE '2023-12-11', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (14, 2, 13, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 1);
-INSERT INTO billet VALUES (15, 3, 28, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'famille', 0);
+INSERT INTO billet VALUES (15, 3, 28, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'normal', 0);
 INSERT INTO billet values (72, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'étudiant', 0);
 INSERT INTO billet VALUES (16, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
 INSERT INTO billet VALUES (17, 1, 35, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'étudiant', 1);
-INSERT INTO billet VALUES (18, 2, 6, DATE '2023-12-12', DATE '2023-12-13', 'annuel', 'groupe', 0);
+INSERT INTO billet VALUES (18, 2, 6, DATE '2023-12-12', DATE '2023-12-13', 'annuel', 'normal', 0);
 INSERT INTO billet VALUES (19, 3, 19, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
-INSERT INTO billet VALUES (20, 4, 15, DATE '2023-12-05', DATE '2023-12-05', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (20, 4, 15, DATE '2023-12-05', DATE '2023-12-05', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (79, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'normal', 0);
 INSERT INTO billet VALUES (21, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'enfant', 0);
 INSERT INTO billet VALUES (22, 2, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'étudiant', 0);
-INSERT INTO billet VALUES (23, 3, 3, DATE '2023-12-23', DATE '2023-12-23', 'nocturne', 'groupe', 1);
+INSERT INTO billet VALUES (23, 3, 3, DATE '2023-12-23', DATE '2023-12-23', 'nocturne', 'normal', 1);
 INSERT INTO billet VALUES (24, 4, 22, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'normal', 0);
 INSERT INTO billet VALUES (25, 1, 38, DATE '2023-12-06', DATE '2023-12-06', 'journalier', 'senior', 0);
-INSERT INTO billet VALUES (26, 2, 10, DATE '2023-12-12', DATE '2023-12-13', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (26, 2, 10, DATE '2023-12-12', DATE '2023-12-13', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (27, 3, 47, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'étudiant', 1);
 INSERT INTO billet VALUES (73, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'étudiant', 0);
 INSERT INTO billet VALUES (28, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'enfant', 0);
-INSERT INTO billet VALUES (29, 1, 2, DATE '2023-12-27', DATE '2023-12-27', 'nocturne', 'groupe', 0);
-INSERT INTO billet VALUES (30, 2, 40, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'famille', 1);
+INSERT INTO billet VALUES (29, 1, 2, DATE '2023-12-27', DATE '2023-12-27', 'nocturne', 'normal', 0);
+INSERT INTO billet VALUES (30, 2, 40, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'normal', 1);
 INSERT INTO billet VALUES (31, 3, 48, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
-INSERT INTO billet VALUES (32, 4, 5, DATE '2023-12-07', DATE '2023-12-07', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (32, 4, 5, DATE '2023-12-07', DATE '2023-12-07', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (33, 1, 13, DATE '2023-12-15', DATE '2023-12-15', 'noel', 'senior', 1);
-INSERT INTO billet VALUES (34, 2, 37, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'groupe', 0);
-INSERT INTO billet VALUES (35, 3, 9, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (34, 2, 37, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (35, 3, 9, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (74, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (36, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'annuel', 'enfant', 1);
 INSERT INTO billet VALUES (37, 1, 20, DATE '2023-12-10', DATE '2023-12-11', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (38, 2, 24, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'normal', 0);
-INSERT INTO billet VALUES (39, 3, 11, DATE '2023-12-28', DATE '2023-12-28', 'journalier', 'famille', 0);
-INSERT INTO billet VALUES (40, 4, 41, DATE '2023-12-04', DATE '2023-12-04', 'nocturne', 'groupe', 1);
+INSERT INTO billet VALUES (39, 3, 11, DATE '2023-12-28', DATE '2023-12-28', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (40, 4, 41, DATE '2023-12-04', DATE '2023-12-04', 'nocturne', 'normal', 1);
 INSERT INTO billet VALUES (41, 1, 18, DATE '2023-12-07', DATE '2023-12-07', 'annuel', 'senior', 0);
 INSERT INTO billet VALUES (42, 2, 28, DATE '2023-12-14', DATE '2023-12-14', 'journalier', 'normal', 0);
-INSERT INTO billet VALUES (43, 3, 19, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'famille', 1);
+INSERT INTO billet VALUES (43, 3, 19, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'normal', 1);
 INSERT INTO billet VALUES (44, 4, 8, DATE '2023-12-09', DATE '2023-12-10', 'noel', 'étudiant', 0);
 INSERT INTO billet VALUES (45, 1, 26, DATE '2023-12-13', DATE '2023-12-13', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (80, 2, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (46, 3, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'enfant', 0);
-INSERT INTO billet VALUES (47, 4, 15, DATE '2023-12-26', DATE '2023-12-27', 'annuel', 'famille', 1);
+INSERT INTO billet VALUES (47, 4, 15, DATE '2023-12-26', DATE '2023-12-27', 'annuel', 'normal', 1);
 INSERT INTO billet VALUES (48, 1, 2, DATE '2023-12-06', DATE '2023-12-07', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (49, 2, 12, DATE '2023-12-15', DATE '2023-12-15', 'journalier', 'senior', 0);
 INSERT INTO billet VALUES (50, 3, 39, DATE '2023-12-29', DATE '2023-12-29', 'noel', 'étudiant', 1);
-INSERT INTO billet VALUES (51, 4, 31, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (51, 4, 31, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (75, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (52, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'enfant', 0);
 INSERT INTO billet VALUES (53, 2, 48, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 1);
 INSERT INTO billet VALUES (54, 3, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'senior', 0);
-INSERT INTO billet VALUES (55, 4, 6, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'famille', 0);
-INSERT INTO billet VALUES (56, 1, 5, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'groupe', 1);
+INSERT INTO billet VALUES (55, 4, 6, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'normal', 0);
+INSERT INTO billet VALUES (56, 1, 5, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'normal', 1);
 INSERT INTO billet VALUES (57, 2, 14, DATE '2023-12-02', DATE '2023-12-03', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (58, 3, 27, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'senior', 0);
-INSERT INTO billet VALUES (59, 4, 45, DATE '2023-12-14', DATE '2023-12-14', 'noel', 'famille', 0);
+INSERT INTO billet VALUES (59, 4, 45, DATE '2023-12-14', DATE '2023-12-14', 'noel', 'normal', 0);
 INSERT INTO billet VALUES (60, 1, 35, DATE '2023-12-29', DATE '2023-12-29', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (61, 2, 25, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
 INSERT INTO billet VALUES (76, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (62, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'enfant', 0);
 INSERT INTO billet VALUES (63, 4, 40, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'senior', 1);
-INSERT INTO billet VALUES (64, 1, 9, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'famille', 0);
-INSERT INTO billet VALUES (65, 2, 37, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'groupe', 0);
+INSERT INTO billet VALUES (64, 1, 9, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (65, 2, 37, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'normal', 0);
 INSERT INTO billet VALUES (66, 3, 41, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 0);
 INSERT INTO billet VALUES (67, 4, 46, DATE '2023-12-04', DATE '2023-12-04', 'journalier', 'senior', 1);
-INSERT INTO billet VALUES (68, 1, 3, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (68, 1, 3, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0);
 INSERT INTO billet VALUES (69, 2, 10, DATE '2023-12-19', DATE '2023-12-19', 'annuel', 'étudiant', 0);
 insert into billet values (77, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'normal', 0);
 INSERT INTO billet VALUES (70, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);

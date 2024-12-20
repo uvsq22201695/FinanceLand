@@ -255,60 +255,110 @@ BEGIN DATA
 LOAD DATA
 INFILE *
 APPEND
+INTO TABLE employe
+FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
+(numero_de_securite_sociale, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
+BEGIN DATA
+100000001, 5, 'Dupont', 'Jean', '0123456789', 'jean.dupont@example.com', '10 Brühl Avenue', 'Brühl','Allemagne'
+100000002, 12, 'Martin', 'Sophie', '0234567890', 'sophie.martin@example.com', '20 Rust Street', 'Rust','Allemagne'
+100000003, 8, 'Bernard', 'Luc', '0345678901', 'luc.bernard@example.com', '30 Disneyland Road', 'Marne-la-Vallée', 'France'
+100000004, 15, 'Durand', 'Emma', '0456789012', 'emma.durand@example.com', '40 Asterix Boulevard', 'Plailly', 'France'
+100000005, 20, 'Moreau', 'Louis', '0567890123', 'louis.moreau@example.com', '50 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France'
+100000006, 25, 'Roux', 'Julie', '0678901234', 'julie.roux@example.com', '60 Walibi Lane', 'Les Avenières', 'France'
+100000007, 30, 'Petit', 'Paul', '0789012345', 'paul.petit@example.com', '70 Sud-Ouest Drive', 'Roquefort', 'France'
+100000008, 34, 'Richard', 'Claire', '0890123456', 'claire.richard@example.com', '80 Alton Towers Road', 'Alton', 'Royaume-Uni'
+100000009, 2, 'Durand', 'Marc', '0901234567', 'marc.durand@example.com', '90 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni'
+100000010, 6, 'Dubois', 'Marie', '0112345678', 'marie.dubois@example.com', '100 PortAventura Street', 'Salou', 'Espagne'
+100000011, 14, 'Blanc', 'Alice', '0123456789', 'alice.blanc@example.com', '110 Disney Drive', 'Anaheim', 'États-Unis'
+100000012, 10, 'Fabre', 'Hugo', '0234567890', 'hugo.fabre@example.com', '120 Universal Boulevard', 'Los Angeles', 'États-Unis'
+100000013, 18, 'Lemoine', 'Sarah', '0345678901', 'sarah.lemoine@example.com', '130 Six Flags Road', 'Valencia', 'États-Unis'
+100000014, 22, 'Noir', 'Lucas', '0456789012', 'lucas.noir@example.com', '140 Cedar Avenue', 'Sandusky', 'États-Unis'
+100000015, 9, 'Clément', 'Chloe', '0567890123', 'chloe.clement@example.com', '150 Brühl Avenue', 'Brühl', 'Allemagne'
+100000016, 11, 'Perrin', 'Thomas', '0678901234', 'thomas.perrin@example.com', '160 Rust Street', 'Rust', 'Allemagne'
+100000017, 16, 'Leclerc', 'Emma', '0789012345', 'emma.leclerc@example.com', '170 Disneyland Road', 'Marne-la-Vallée', 'France'
+100000018, 21, 'Lemoine', 'Victor', '0890123456', 'victor.lemoine@example.com', '180 Asterix Boulevard', 'Plailly', 'France'
+100000019, 19, 'Simon', 'Anais', '0901234567', 'anais.simon@example.com', '190 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France'
+100000020, 24, 'Michel', 'Arthur', '0112345678', 'arthur.michel@example.com', '200 Walibi Lane', 'Les Avenières', 'France'
+100000021, 27, 'Garcia', 'Elisa', '0123456789', 'elisa.garcia@example.com', '210 Sud-Ouest Drive', 'Roquefort', 'France'
+100000022, 28, 'Fernandez', 'Nathan', '0234567890', 'nathan.fernandez@example.com', '220 Alton Towers Road', 'Alton', 'Royaume-Uni'
+100000023, 3, 'Lopez', 'Camille', '0345678901', 'camille.lopez@example.com', '230 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni'
+100000024, 7, 'Morin', 'Julien', '0456789012', 'julien.morin@example.com', '240 PortAventura Street', 'Salou', 'Espagne'
+100000025, 13, 'Morel', 'Celine', '0567890123', 'celine.morel@example.com', '250 Disney Drive', 'Anaheim', 'États-Unis'
+100000026, 4, 'Guerin', 'Leo', '0678901234', 'leo.guerin@example.com', '260 Universal Boulevard', 'Los Angeles', 'États-Unis'
+100000027, 23, 'Fournier', 'Eva', '0789012345', 'eva.fournier@example.com', '270 Six Flags Road', 'Valencia', 'États-Unis'
+100000028, 17, 'Girard', 'Adam', '0890123456', 'adam.girard@example.com', '280 Cedar Avenue', 'Sandusky', 'États-Unis'
+100000029, 26, 'Andre', 'Lola', '0901234567', 'lola.andre@example.com', '290 Brühl Avenue', 'Brühl', 'Allemagne'
+100000030, 31, 'Mercier', 'Noah', '0112345678', 'noah.mercier@example.com', '300 Rust Street', 'Rust', 'Allemagne'
+100000031, 32, 'Dupuis', 'Alice', '0123456789', 'alice.dupuis@example.com', '310 Disneyland Road', 'Marne-la-Vallée', 'France'
+100000032, 33, 'Lambert', 'Louis', '0234567890', 'louis.lambert@example.com', '320 Asterix Boulevard', 'Plailly', 'France'
+100000033, 29, 'Fontaine', 'Sophie', '0345678901', 'sophie.fontaine@example.com', '330 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France'
+100000034, 2, 'Roche', 'Emma', '0456789012', 'emma.roche@example.com', '340 Walibi Lane', 'Les Avenières', 'France'
+100000035, 1, 'Chevalier', 'Hugo', '0567890123', 'hugo.chevalier@example.com', '350 Sud-Ouest Drive', 'Roquefort', 'France'
+100000036, 12, 'Francois', 'Paul', '0678901234', 'paul.francois@example.com', '360 Alton Towers Road', 'Alton', 'Royaume-Uni'
+100000037, 18, 'Perrot', 'Lucas', '0789012345', 'lucas.perrot@example.com', '370 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni'
+100000038, 20, 'Lemoine', 'Sarah', '0890123456', 'sarah.lemoine@example.com', '380 PortAventura Street', 'Salou', 'Espagne'
+100000039, 14, 'Benoit', 'Julien', '0901234567', 'julien.benoit@example.com', '390 Disney Drive', 'Anaheim', 'États-Unis'
+100000040, 10, 'Antoine', 'Eve', '0112345678', 'eve.antoine@example.com', '400 Universal Boulevard', 'Los Angeles', 'États-Unis'
+100000041, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis'
+100000043, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne'
+
+LOAD DATA
+INFILE *
+APPEND
 INTO TABLE commande
 FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
-(id_commande, id_client, date_commande DATE "YYYY-MM-DD", montant_total)
+(id_commande, id_client, date_commande DATE "YYYY-MM-DD", montant_total, nb_billets)
 BEGIN DATA
-1, 12, DATE '2023-11-01', NULL
-2, 7, DATE '2023-11-02', NULL
-3, 23, DATE '2023-11-03', NULL
-4, 5, DATE '2023-11-04', NULL
-5, 19, DATE '2023-11-05', NULL
-6, 15, DATE '2023-11-06', NULL
-7, 8, DATE '2023-11-07', NULL
-8, 27, DATE '2022-11-08', NULL
-9, 1, DATE '2023-11-09', NULL
-10, 29, DATE '2023-11-10', NULL
-11, 6, DATE '2023-11-11', NULL
-12, 18, DATE '2023-11-12', NULL
-13, 14, DATE '2023-11-13', NULL
-14, 21, DATE '2023-11-14', NULL
-15, 9, DATE '2023-11-15', NULL
-16, 3, DATE '2023-11-16', NULL
-17, 10, DATE '2023-11-17', NULL
-18, 22, DATE '2023-11-18', NULL
-19, 26, DATE '2023-11-19', NULL
-20, 4, DATE '2023-11-20', NULL
-21, 25, DATE '2023-11-21', NULL
-22, 2, DATE '2023-11-22', NULL
-23, 17, DATE '2023-11-23', NULL
-24, 13, DATE '2023-11-24', NULL
-25, 19, DATE '2023-11-25', NULL
-26, 11, DATE '2023-11-26', NULL
-27, 29, DATE '2023-11-27', NULL
-28, 16, DATE '2023-11-28', NULL
-29, 8, DATE '2023-11-29', NULL
-30, 20, DATE '2023-11-30', NULL
-31, 5, DATE '2023-12-01', NULL
-32, 24, DATE '2023-12-02', NULL
-33, 12, DATE '2023-12-03', NULL
-34, 28, DATE '2023-12-04', NULL
-35, 7, DATE '2023-12-05', NULL
-36, 2, DATE '2023-12-06', NUL
-37, 9, DATE '2023-12-07', NULL
-38, 15, DATE '2023-12-08', NULL
-39, 1, DATE '2023-12-09', NULL
-40, 19, DATE '2023-12-10', NULL
-41, 14, DATE '2023-12-11', NULL
-42, 22, DATE '2023-12-12', NULL
-43, 3, DATE '2023-12-13', NULL
-44, 10, DATE '2023-12-14', NULL
-45, 18, DATE '2023-12-15', NULL
-46, 21, DATE '2023-12-16', NULL
-47, 27, DATE '2023-12-17', NULL
-48, 6, DATE '2023-12-18', NULL
-49, 11, DATE '2023-12-19', NULL
-50, 29, DATE '2023-12-20', NULL
+1, 12, DATE '2023-11-01', 0, 0
+2, 7, DATE '2023-11-02', 0, 0
+3, 23, DATE '2023-11-03', 0, 0
+4, 5, DATE '2023-11-04', 0, 0
+5, 19, DATE '2023-11-05', 0, 0
+6, 15, DATE '2023-11-06', 0, 0
+7, 8, DATE '2023-11-07', 0, 0
+8, 27, DATE '2022-11-08', 0, 0
+9, 1, DATE '2023-11-09', 0, 0
+10, 29, DATE '2023-11-10', 0, 0
+11, 6, DATE '2023-11-11', 0, 0
+12, 18, DATE '2023-11-12', 0, 0
+13, 14, DATE '2023-11-13', 0, 0
+14, 21, DATE '2023-11-14', 0, 0
+15, 9, DATE '2023-11-15', 0, 0
+16, 3, DATE '2023-11-16', 0, 0
+17, 10, DATE '2023-11-17', 0, 0
+18, 22, DATE '2023-11-18', 0, 0
+19, 26, DATE '2023-11-19', 0, 0
+20, 4, DATE '2023-11-20', 0, 0
+21, 25, DATE '2023-11-21', 0, 0
+22, 2, DATE '2023-11-22', 0, 0
+23, 17, DATE '2023-11-23', 0, 0
+24, 13, DATE '2023-11-24', 0, 0
+25, 19, DATE '2023-11-25', 0, 0
+26, 11, DATE '2023-11-26', 0, 0
+27, 29, DATE '2023-11-27', 0, 0
+28, 16, DATE '2023-11-28', 0, 0
+29, 8, DATE '2023-11-29', 0, 0
+30, 20, DATE '2023-11-30', 0, 0
+31, 5, DATE '2023-12-01', 0, 0
+32, 24, DATE '2023-12-02', 0, 0
+33, 12, DATE '2023-12-03', 0, 0
+34, 28, DATE '2023-12-04', 0, 0
+35, 7, DATE '2023-12-05', 0, 0
+36, 2, DATE '2023-12-06', 0, 0
+37, 9, DATE '2023-12-07', 0, 0
+38, 15, DATE '2023-12-08', 0, 0
+39, 1, DATE '2023-12-09', 0, 0
+40, 19, DATE '2023-12-10', 0, 0
+41, 14, DATE '2023-12-11', 0, 0
+42, 22, DATE '2023-12-12', 0, 0
+43, 3, DATE '2023-12-13', 0, 0
+44, 10, DATE '2023-12-14', 0, 0
+45, 18, DATE '2023-12-15', 0, 0
+46, 21, DATE '2023-12-16', 0, 0
+47, 27, DATE '2023-12-17', 0, 0
+48, 6, DATE '2023-12-18', 0, 0
+49, 11, DATE '2023-12-19', 0, 0
+50, 29, DATE '2023-12-20', 0, 0
 
 LOAD DATA
 INFILE *

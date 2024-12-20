@@ -892,7 +892,8 @@ SELECT
     c.salaire,
     c.type AS type_contrat
 FROM employe e
-JOIN parc p ON e.id_parc = p.id_parc
+JOIN attraction a ON e.id_attraction = a.id_attraction
+JOIN parc p ON a.id_parc = p.id_parc
 JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale;
 
 -- Liste des billets d'un client spécifique, filtrée par son email.
@@ -981,7 +982,8 @@ WHERE date_ouverture < SYSDATE - INTERVAL '10' YEAR;
 -- 2 Combien d'employés travaillent dans chaque parc ?
 SELECT p.nom, COUNT(distinct (e.numero_de_securite_sociale)) AS nb_employes
 FROM parc p
-LEFT JOIN employe e ON p.id_parc = e.id_parc
+LEFT JOIN attraction a ON p.id_parc = a.id_parc
+LEFT JOIN employe e ON a.id_attraction = e.id_attraction
 GROUP BY p.nom;
 
 -- 3 Quelle est la date du dernier travail effectuée sur chaque attraction ?

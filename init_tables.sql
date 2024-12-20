@@ -493,54 +493,54 @@ insert into travaux values (sequence_id_travaux.nextval, 7, DATE '2021-01-01', D
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2021-02-01', DATE '2021-02-10', 'Révision matérielle', 12000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2021-03-01', DATE '2021-03-15', 'Maintenance annuelle', 8000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2021-04-05', DATE '2021-04-20', 'Test de sécurité', 15000, 'terminé', 'SafeCheck Pro');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2021-05-01', DATE '2021-05-10', 'Réparation urgente', 20000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2021-05-01', DATE '2021-05-10', 'Réparation urgente', 20000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2021-06-01', DATE '2021-06-12', 'Amélioration technique', 18000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2021-07-10', DATE '2021-07-25', 'Maintenance annuelle', 10000, 'prévu', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2021-08-01', DATE '2021-08-20', 'Test de sécurité', 16000, 'en cours', 'SafeCheck Pro');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2021-08-01', DATE '2021-08-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2021-09-01', DATE '2021-09-15', 'Révision matérielle', 14000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2021-10-01', DATE '2021-10-20', 'Réparation urgente', 22000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2021-10-01', DATE '2021-10-20', 'Réparation urgente', 22000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2021-11-01', DATE '2021-11-15', 'Amélioration technique', 17000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 11, DATE '2021-12-01', DATE '2021-12-10', 'Maintenance annuelle', 12000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 12, DATE '2021-02-15', DATE '2021-03-01', 'Réparation urgente', 25000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 12, DATE '2021-02-15', DATE '2021-03-01', 'Réparation urgente', 25000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 13, DATE '2021-03-10', DATE '2021-03-25', 'Test de sécurité', 20000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 14, DATE '2021-04-15', DATE '2021-05-05', 'Amélioration technique', 30000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 15, DATE '2021-05-10', DATE '2021-05-25', 'Maintenance annuelle', 9000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 16, DATE '2021-06-15', DATE '2021-07-01', 'Réparation urgente', 24000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 16, DATE '2021-06-15', DATE '2021-07-01', 'Réparation urgente', 24000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 17, DATE '2021-07-20', DATE '2021-08-10', 'Révision matérielle', 15000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 18, DATE '2021-08-25', DATE '2021-09-10', 'Test de sécurité', 12000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 19, DATE '2021-10-01', DATE '2021-10-15', 'Amélioration technique', 21000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 20, DATE '2021-11-10', DATE '2021-11-25', 'Maintenance annuelle', 10000, 'prévu', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 21, DATE '2021-01-10', DATE '2021-01-20', 'Test de sécurité', 13000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 22, DATE '2021-02-05', DATE '2021-02-15', 'Révision matérielle', 17000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 23, DATE '2021-03-05', DATE '2021-03-18', 'Maintenance annuelle', 12000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 23, DATE '2021-03-05', DATE '2021-03-18', 'Maintenance annuelle', 12000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 24, DATE '2021-04-05', DATE '2021-04-15', 'Réparation urgente', 25000, 'prévu', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 25, DATE '2021-05-10', DATE '2021-05-20', 'Amélioration technique', 30000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 26, DATE '2021-06-15', DATE '2021-06-25', 'Test de sécurité', 22000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 27, DATE '2021-07-01', DATE '2021-07-10', 'Maintenance annuelle', 15000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 28, DATE '2021-08-05', DATE '2021-08-15', 'Révision matérielle', 16000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 29, DATE '2021-09-10', DATE '2021-09-20', 'Maintenance annuelle', 18000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 29, DATE '2021-09-10', DATE '2021-09-20', 'Maintenance annuelle', 18000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 30, DATE '2021-10-05', DATE '2021-10-15', 'Test de sécurité', 25000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 31, DATE '2021-11-15', DATE '2021-11-25', 'Réparation urgente', 26000, 'prévu', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 32, DATE '2021-12-01', DATE '2021-12-12', 'Maintenance annuelle', 14000, 'terminé', 'TechnoPatch');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 33, DATE '2021-01-05', DATE '2021-01-15', 'Révision matérielle', 16000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 33, DATE '2021-01-05', DATE '2021-01-15', 'Révision matérielle', 16000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 34, DATE '2021-02-10', DATE '2021-02-20', 'Test de sécurité', 18000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2023-01-10', DATE '2023-01-20', 'Inspection de sécurité', 12000, 'terminé', 'SafeCheck Pro');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2024-05-15', DATE '2024-06-01', 'Réparation majeure', 35000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2024-05-15', DATE '2025-06-01', 'Réparation majeure', 35000, 'en cours', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2023-03-01', DATE '2023-03-15', 'Amélioration technique', 20000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2024-07-10', DATE '2024-07-25', 'Maintenance annuelle', 15000, 'prévu', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2024-02-20', DATE '2024-03-05', 'Révision matérielle', 14000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2023-11-01', DATE '2023-11-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2023-06-01', DATE '2023-06-15', 'Réparation urgente', 25000, 'terminé', 'RepairHub');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2024-09-01', DATE '2024-09-15', 'Amélioration technique', 28000, 'en cours', 'TechnoPatch');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2024-09-01', DATE '2025-09-15', 'Amélioration technique', 28000, 'en cours', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2023-08-01', DATE '2023-08-10', 'Maintenance annuelle', 10000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2024-10-15', DATE '2024-10-30', 'Inspection de sécurité', 12000, 'prévu', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2023-05-01', DATE '2023-05-10', 'Révision matérielle', 11000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2024-11-01', DATE '2024-11-10', 'Réparation urgente', 18000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2024-11-01', DATE '2025-11-10', 'Réparation urgente', 18000, 'en cours', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2023-04-15', DATE '2023-04-30', 'Test de sécurité', 15000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2024-12-01', DATE '2024-12-15', 'Amélioration technique', 22000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2023-09-01', DATE '2023-09-10', 'Maintenance annuelle', 9000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2024-03-01', DATE '2024-03-15', 'Révision matérielle', 14000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2023-02-01', DATE '2023-02-10', 'Réparation urgente', 30000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2023-02-01', DATE '2023-02-10', 'Réparation urgente', 30000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2024-04-10', DATE '2024-04-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2023-12-01', DATE '2023-12-10', 'Amélioration technique', 25000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2024-06-10', DATE '2024-06-20', 'Maintenance annuelle', 12000, 'terminé', 'Reparator 3000');
@@ -818,6 +818,7 @@ INSERT INTO billet VALUES (70, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'jou
 
 -- Vues
 
+-- Liste des travaux réalisés pour chaque attraction.
 CREATE OR REPLACE VIEW vue_travaux_par_attraction AS
 SELECT
     a.nom AS nom_attraction,
@@ -828,6 +829,7 @@ SELECT
 FROM travaux t
 JOIN attraction a ON t.id_attraction = a.id_attraction;
 
+-- Liste des revenus totaux générés par chaque parc, en tenant compte des tarifs appliqués et des réductions associées.
 CREATE OR REPLACE VIEW vue_revenus_parc AS
 SELECT
     p.nom AS nom_parc,
@@ -838,6 +840,7 @@ LEFT JOIN tarif t ON b.tarif = t.nom_tarif
 LEFT JOIN reduction r ON b.reduction = r.nom_reduction
 GROUP BY p.nom;
 
+-- Liste des clients avec leur nombre de commandes et la date de leur dernière commande.
 CREATE OR REPLACE VIEW vue_clients_commandes AS
 SELECT
     c.id_client,
@@ -849,6 +852,7 @@ FROM client c
 LEFT JOIN commande co ON c.id_client = co.id_client
 GROUP BY c.id_client, c.nom, c.prenom, c.email;
 
+-- Liste des travaux actuellement en cours, incluant le nom de l'attraction, la description des travaux, les dates de début et fin, et leur coût.
 CREATE OR REPLACE VIEW vue_travaux_en_cours AS
 SELECT
     a.nom AS nom_attraction,
@@ -860,6 +864,7 @@ FROM travaux t
 JOIN attraction a ON t.id_attraction = a.id_attraction
 WHERE t.etat = 'en cours';
 
+-- Liste des attractions avec leurs statistiques, triées par capacité horaire décroissante.
 CREATE OR REPLACE VIEW vue_statistiques_attractions AS
 SELECT
     nom,
@@ -870,6 +875,7 @@ SELECT
 FROM attraction
 ORDER BY capacite_horaire DESC;
 
+-- Liste des employés affectés à chaque attraction, incluant leurs coordonnées.
 CREATE OR REPLACE VIEW vue_employes_par_attraction AS
 SELECT
     a.nom AS nom_attraction,
@@ -879,6 +885,7 @@ SELECT
 FROM employe e
 JOIN attraction a ON e.id_attraction = a.id_attraction;
 
+-- Liste des employés et leurs salaires par parc, avec le type de contrat associé.
 CREATE OR REPLACE VIEW vue_salaire_employes_parc AS
 SELECT
     p.nom AS nom_parc,
@@ -889,6 +896,7 @@ FROM employe e
 JOIN parc p ON e.id_parc = p.id_parc
 JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale;
 
+-- Liste des billets d'un client spécifique, filtrée par son email.
 CREATE OR REPLACE VIEW vue_mes_billets AS
 SELECT
     b.id_billet,

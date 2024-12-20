@@ -323,16 +323,47 @@ CREATE OR REPLACE TRIGGER trg_calcul_prix_total_commande
 BEFORE INSERT OR UPDATE ON billet
 FOR EACH ROW
 DECLARE
-    v_prix_total NUMBER;
+    v_prix NUMBER; -- Variable pour le prix du billet actuel
+    v_reduction NUMBER; -- Variable pour la réduction éventuelle
 BEGIN
-    SELECT SUM(t.prix)
-    INTO v_prix_total
-    FROM billet b
-    JOIN tarif t ON b.tarif = t.nom_tarif
-    WHERE b.id_commande = :NEW.id_commande;
-    UPDATE commande
-    SET montant_total = v_prix_total
-    WHERE id_commande = :NEW.id_commande;
+    -- Récupérer le prix du tarif du billet
+    SELECT t.prix, NVL(r.reduction, 0)
+    INTO v_prix, v_reduction
+    FROM tarif t
+    LEFT JOIN reduction r ON r.nom_reduction = :NEW.reduction
+    WHERE t.nom_tarif = :NEW.tarif;
+
+    -- Calculer le prix réel du billet après réduction
+    v_prix := v_prix * (1 - v_reduction);
+
+    IF INSERTING THEN
+        -- Ajouter le prix du billet à la commande
+        UPDATE commande
+        SET montant_total = NVL(montant_total, 0) + v_prix
+        WHERE id_commande = :NEW.id_commande;
+
+    ELSIF UPDATING THEN
+        -- Calculer la différence entre l'ancien et le nouveau prix du billet
+        DECLARE
+            v_old_prix NUMBER;
+            v_old_reduction NUMBER;
+        BEGIN
+            -- Récupérer l'ancien prix et réduction
+            SELECT t.prix, NVL(r.reduction, 0)
+            INTO v_old_prix, v_old_reduction
+            FROM tarif t
+            LEFT JOIN reduction r ON r.nom_reduction = :OLD.reduction
+            WHERE t.nom_tarif = :OLD.tarif;
+
+            -- Calculer le prix ancien après réduction
+            v_old_prix := v_old_prix * (1 - v_old_reduction);
+
+            -- Mettre à jour la commande en ajustant la différence
+            UPDATE commande
+            SET montant_total = NVL(montant_total, 0) + (v_prix - v_old_prix)
+            WHERE id_commande = :NEW.id_commande;
+        END;
+    END IF;
 END;
 /
 
@@ -761,7 +792,6 @@ INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (27, TO_D
 INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (28, TO_DATE('2023-12-01 19:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
 INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (29, TO_DATE('2023-12-01 19:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
 INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (30, TO_DATE('2023-12-01 20:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
-
 
 -- Insertions réductions
 
@@ -1192,4 +1222,3 @@ FROM (
     GROUP BY p.nom, c.nom, c.prenom
 ) parc_fideles
 WHERE parc_fideles.rang_client = 1;
-

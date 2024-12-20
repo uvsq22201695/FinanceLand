@@ -132,7 +132,7 @@ CREATE TABLE attraction (
     CONSTRAINT chk_attraction_longueur_non_negatif CHECK (longueur >= 0 or longueur is null),
     CONSTRAINT chk_attraction_duree_non_negatif CHECK (duree >= 0 or duree is null),
     CONSTRAINT chk_attraction_vitesse_non_negatif CHECK (vitesse_maximale >= 0 or vitesse_maximale is null),
-    CONSTRAINT fk_attraction_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc)
+    CONSTRAINT fk_attraction_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc) ON DELETE CASCADE
 );
 
 -- Création de la table 'travaux'
@@ -148,7 +148,7 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
-    CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
+    CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction) ON DELETE CASCADE
 );
 
 -- Création de la table 'employe'
@@ -162,7 +162,7 @@ CREATE TABLE employe (
     adresse VARCHAR2(200),
     ville VARCHAR2(100),
     pays VARCHAR2(100),
-    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
+    CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction) ON DELETE SET NULL
 );
 
 -- Création de la table 'contrat'
@@ -177,7 +177,7 @@ CREATE TABLE contrat (
     CONSTRAINT chk_contrat_salaire_non_negatif CHECK (salaire > 0),
     CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'Stage', 'Alternance', 'Interim')),
     CONSTRAINT chk_contrat_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
-    CONSTRAINT fk_contrat_employe FOREIGN KEY (numero_de_securite_sociale) REFERENCES employe(numero_de_securite_sociale)
+    CONSTRAINT fk_contrat_employe FOREIGN KEY (numero_de_securite_sociale) REFERENCES employe(numero_de_securite_sociale) ON DELETE CASCADE
 );
 
 -- Création de la table 'commande'
@@ -224,9 +224,9 @@ CREATE TABLE billet (
     CONSTRAINT chk_billet_dates CHECK (date_fin_validite >= date_debut_validite),
     constraint chk_scanne_type CHECK (scanne IN (0, 1)),
     CONSTRAINT fk_billet_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
-    CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande),
-    CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif),
-    CONSTRAINT fk_billet_reduction FOREIGN KEY (reduction) REFERENCES reduction(nom_reduction)
+    CONSTRAINT fk_billet_commande FOREIGN KEY (id_commande) REFERENCES commande(id_commande)ON DELETE CASCADE,
+    CONSTRAINT fk_billet_tarif FOREIGN KEY (tarif) REFERENCES tarif(nom_tarif) ON DELETE SET NULL,
+    CONSTRAINT fk_billet_reduction FOREIGN KEY (reduction) REFERENCES reduction(nom_reduction) ON DELETE SET NULL
 );
 
 -- Triggers

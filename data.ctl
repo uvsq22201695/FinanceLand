@@ -3,7 +3,7 @@ INFILE *
 APPEND
 INTO TABLE parc
 FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
-(id_parc, nom, date_ouverture DATE "YYYY-MM-DD", superficie, pays, ville)
+(id_parc, nom, date_ouverture YYYY-MM-DD, superficie, pays, ville)
 BEGINDATA
 1, "Phantasialand", 1967-04-30, 28, "Allemagne", "Brülh"
 2, "Europa-Park", 1975-07-12, 95, "Allemagne", "Rust"
@@ -19,3 +19,32 @@ BEGINDATA
 12, "Universal Studios Hollywood", 1964-07-15, 415, "États-Unis", "Los Angeles"
 13, "Six Flags Magic Mountain", 1971-05-29, 262, "États-Unis", "Valencia"
 14, "Cedar Point", 1870-05-17, 200, "États-Unis", "Sandusky"
+15, "Wonderland Adventure", 2020-06-15, 120, "Australie", "Sydney"
+16, "Galaxy World", 2019-09-20, 150, "Canada", "Toronto"
+17, "Dream Park", 2021-07-01, 80, "Japon", "Tokyo"
+18, "Adventure City", 2018-03-10, 95, "Chine", "Shanghai"
+19, "Future Fun", 2017-11-05, 110, "Corée du Sud", "Séoul"
+20, "Fantasy Land", 2022-04-25, 90, "Mexique", "Mexico"
+21, "Oceanic Thrills", 2016-10-12, 130, "Afrique du Sud", "Cape Town"
+22, "Extreme Rides", 2015-08-18, 140, "Russie", "Moscou"
+23, "Magic Horizons", 2020-02-14, 100, "Brésil", "Rio de Janeiro"
+24, "Luna Park", 2014-05-20, 60, "Italie", "Rome"
+25, "Skyline Adventures", 2019-11-11, 150, "Nouvelle-Zélande", "Auckland"
+26, "Velocity Valley", 2021-09-09, 200, "États-Unis", "Las Vegas"
+27, "Gravity Park", 2018-12-25, 85, "Espagne", "Barcelone"
+28, "Sunset Thrills", 2016-06-06, 100, "Portugal", "Lisbonne"
+29, "Moonlit Adventures", 2023-03-21, 75, "Grèce", "Athènes"
+30, "Star Quest", 2017-01-01, 120, "Inde", "Mumbai"
+
+LOAD DATA
+INFILE *
+APPEND
+INTO TABLE tarif
+FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
+(nom_tarif, prix, duree_en_jour, date_debut YYYY-MM-DD, date_fin YYYY-MM-DD)
+BEGINDATA
+"journalier", 50, 1, 2021-01-01, null);
+"2 jours", 80, 2,  2021-01-01, null);
+"annuel", 500, 365,  2021-01-01, null);
+"nocturne", 30, 1,  2021-01-01, null);
+"noel", 60, 1,  2020-11-15, 2021-12-31);

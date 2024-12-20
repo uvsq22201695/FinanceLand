@@ -4,7 +4,16 @@ INFILE *
 APPEND
 INTO TABLE travaux
 FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
-(id_travaux, id_attraction, date_debut DATE "YYYY-MM-DD", date_fin DATE "YYYY-MM-DD", description, cout, etat, reparateur)
+(
+  id_travaux,
+  id_attraction,
+  date_debut "CASE WHEN :date_debut = 'DYN' THEN TRUNC(SYSDATE, 'YEAR') - INTERVAL '5' MONTH ELSE TO_DATE(:date_debut, 'YYYY-MM-DD') END",
+  date_fin "CASE WHEN :date_fin = 'DYN' THEN TRUNC(SYSDATE, 'YEAR') - INTERVAL '3' MONTH ELSE TO_DATE(:date_fin, 'YYYY-MM-DD') END",
+  description,
+  cout,
+  etat,
+  reparateur
+)
 BEGINDATA
 1, 1, 2021-01-01, 2021-01-15, "Maintenance annuelle", 10000, "terminé", "Reparator 3000"
 2, 2, 2021-01-01, 2021-01-15, "Maintenance annuelle", 10000, "terminé", "Attraction Comme Neuves INC"
@@ -36,7 +45,7 @@ BEGINDATA
 28, 21, 2021-01-10, 2021-01-20, "Test de sécurité", 13000, "terminé", "SafeCheck Pro"
 29, 22, 2021-02-05, 2021-02-15, "Révision matérielle", 17000, "terminé", "Reparator 3000"
 30, 23, 2021-03-05, 2021-03-18, "Maintenance annuelle", 12000, "terminé", "FixIt Fast"
-31, 24, 2021-04-05, 2021-01-15, "Réparation urgente", 25000, "prévu", "RepairHub"
+31, 24, 2021-04-05, 2021-04-15, "Réparation urgente", 25000, "prévu", "RepairHub"
 32, 25, 2021-05-10, 2021-05-20, "Amélioration technique", 30000, "terminé", "TechnoPatch"
 33, 26, 2021-06-15, 2021-06-25, "Test de sécurité", 22000, "terminé", "SafeCheck Pro"
 34, 27, 2021-07-01, 2021-07-10, "Maintenance annuelle", 15000, "terminé", "Reparator 3000"
@@ -67,7 +76,7 @@ BEGINDATA
 59, 9, 2024-04-10, 2024-04-20, "Test de sécurité", 16000, "terminé", "SafeCheck Pro"
 60, 10, 2023-12-01, 2023-12-10, "Amélioration technique", 25000, "prévu", "TechnoPatch"
 61, 10, 2024-06-10, 2024-06-20, "Maintenance annuelle", 12000, "terminé", "Reparator 3000"
-62, 1, 2023-03, 2023-04, "Révision annuelle", 15000, "terminé", "FixIt Fast"
-63, 1, 2023-09, 2023-10, "Test de sécurité", 12000, "terminé", "SafeCheck Pro"
-64, 5, 2023-02, 2023-03, "Maintenance préventive", 18000, "terminé", "RepairHub"
-65, 5, 2023-11, 2023-12, "Amélioration technique", 20000, "terminé", "TechnoPatch"
+62, 1, DYN, DYN, "Révision annuelle", 15000, "terminé", "FixIt Fast"
+63, 1, DYN, DYN, "Test de sécurité", 12000, "terminé", "SafeCheck Pro"
+64, 5, DYN, DYN, "Maintenance préventive", 18000, "terminé", "RepairHub"
+65, 5, DYN, DYN, "Amélioration technique", 20000, "terminé", "TechnoPatch"

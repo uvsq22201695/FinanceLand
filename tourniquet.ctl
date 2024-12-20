@@ -4,47 +4,51 @@ INFILE *
 APPEND
 INTO TABLE tourniquet
 FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY '"'
-(id_attraction, heure, entree_ou_sortie)
+(
+  id_attraction,
+  heure DATE "YYYY-MM-DD HH24:MI:SS",
+  entree_ou_sortie
+)
 BEGINDATA
-1, TO_DATE('2023-12-01 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-1, TO_DATE('2023-12-01 09:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-1, TO_DATE('2023-12-01 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-1, TO_DATE('2023-12-01 10:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-2, TO_DATE('2023-12-01 11:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-4, TO_DATE('2023-12-01 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-4, TO_DATE('2023-12-01 12:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-5, TO_DATE('2023-12-01 09:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-5, TO_DATE('2023-12-01 09:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-5, TO_DATE('2023-12-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-5, TO_DATE('2023-12-01 10:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-5, TO_DATE('2023-12-01 11:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-7, TO_DATE('2023-12-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-7, TO_DATE('2023-12-01 14:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-8, TO_DATE('2023-12-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-9, TO_DATE('2023-12-01 09:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-9, TO_DATE('2023-12-01 09:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-9, TO_DATE('2023-12-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-9, TO_DATE('2023-12-01 10:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-10, TO_DATE('2023-12-01 09:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-10, TO_DATE('2023-12-01 09:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-11, TO_DATE('2023-12-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-12, TO_DATE('2023-12-01 10:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-12, TO_DATE('2023-12-01 11:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie'
-13, TO_DATE('2023-12-01 11:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-14, TO_DATE('2023-12-01 12:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-15, TO_DATE('2023-12-01 12:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-16, TO_DATE('2023-12-01 13:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-17, TO_DATE('2023-12-01 13:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-18, TO_DATE('2023-12-01 14:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-19, TO_DATE('2023-12-01 14:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-20, TO_DATE('2023-12-01 15:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-21, TO_DATE('2023-12-01 15:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-22, TO_DATE('2023-12-01 16:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-23, TO_DATE('2023-12-01 16:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-24, TO_DATE('2023-12-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-25, TO_DATE('2023-12-01 17:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-26, TO_DATE('2023-12-01 18:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-27, TO_DATE('2023-12-01 18:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-28, TO_DATE('2023-12-01 19:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-29, TO_DATE('2023-12-01 19:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
-30, TO_DATE('2023-12-01 20:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée'
+1, 2023-12-01 09:00:00, "entrée"
+1, 2023-12-01 09:30:00, "sortie"
+1, 2023-12-01 10:00:00, "entrée"
+1, 2023-12-01 10:30:00, "sortie"
+2, 2023-12-01 11:00:00, "entrée"
+4, 2023-12-01 12:00:00, "entrée"
+4, 2023-12-01 12:45:00, "sortie"
+5, 2023-12-01 09:15:00, "entrée"
+5, 2023-12-01 09:45:00, "sortie"
+5, 2023-12-01 10:15:00, "entrée"
+5, 2023-12-01 10:45:00, "sortie"
+5, 2023-12-01 11:15:00, "entrée"
+7, 2023-12-01 14:00:00, "entrée"
+7, 2023-12-01 14:30:00, "sortie"
+8, 2023-12-01 15:00:00, "sortie"
+9, 2023-12-01 09:05:00, "entrée"
+9, 2023-12-01 09:35:00, "entrée"
+9, 2023-12-01 10:05:00, "entrée"
+9, 2023-12-01 10:35:00, "entrée"
+10, 2023-12-01 09:20:00, "entrée"
+10, 2023-12-01 09:50:00, "sortie"
+11, 2023-12-01 10:20:00, "entrée"
+12, 2023-12-01 10:50:00, "entrée"
+12, 2023-12-01 11:20:00, "sortie"
+13, 2023-12-01 11:50:00, "entrée"
+14, 2023-12-01 12:20:00, "entrée"
+15, 2023-12-01 12:50:00, "entrée"
+16, 2023-12-01 13:20:00, "entrée"
+17, 2023-12-01 13:50:00, "entrée"
+18, 2023-12-01 14:20:00, "entrée"
+19, 2023-12-01 14:50:00, "entrée"
+20, 2023-12-01 15:20:00, "entrée"
+21, 2023-12-01 15:50:00, "entrée"
+22, 2023-12-01 16:20:00, "entrée"
+23, 2023-12-01 16:50:00, "entrée"
+24, 2023-12-01 17:20:00, "entrée"
+25, 2023-12-01 17:50:00, "entrée"
+26, 2023-12-01 18:20:00, "entrée"
+27, 2023-12-01 18:50:00, "entrée"
+28, 2023-12-01 19:20:00, "entrée"
+29, 2023-12-01 19:50:00, "entrée"
+30, 2023-12-01 20:20:00, "entrée"

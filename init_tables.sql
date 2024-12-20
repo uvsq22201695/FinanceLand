@@ -86,7 +86,6 @@ CREATE TABLE tarif (
     nom_tarif VARCHAR2(100) PRIMARY KEY,
     prix NUMBER,
     duree_en_jour NUMBER,
-    reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
     constraint ch_tarif_prix CHECK (prix > 0),
@@ -150,12 +149,11 @@ CREATE TABLE travaux (
     CONSTRAINT chk_travaux_cout_non_negatif CHECK (cout >= 0 or cout is null),
     CONSTRAINT chk_travaux_etat_valide CHECK (etat IN ('prévu', 'en cours', 'terminé')),
     CONSTRAINT fk_travaux_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
-); -- FAIRE TRIGGER
+);
 
 -- Création de la table 'employe'
 CREATE TABLE employe (
     numero_de_securite_sociale NUMBER PRIMARY KEY,
-    id_parc NUMBER,
     id_attraction NUMBER,
     nom VARCHAR2(100) NOT NULL,
     prenom VARCHAR2(100) NOT NULL,
@@ -164,7 +162,6 @@ CREATE TABLE employe (
     adresse VARCHAR2(200),
     ville VARCHAR2(100),
     pays VARCHAR2(100),
-    CONSTRAINT fk_employe_parc FOREIGN KEY (id_parc) REFERENCES parc(id_parc),
     CONSTRAINT fk_employe_attraction FOREIGN KEY (id_attraction) REFERENCES attraction(id_attraction)
 );
 
@@ -298,48 +295,50 @@ end;
 
 -- Trigger si une commande possède 8 billets ou plus sur un même date, tous les billets profitent d’une réduction
 -- de 20% sur leur prix.
+--
+-- CREATE OR REPLACE TRIGGER trg_reduction_billet
+-- FOR INSERT OR UPDATE ON billet
+-- COMPOUND TRIGGER
+--     TYPE billet_data IS RECORD (
+--         id_commande NUMBER,
+--         date_debut_validite DATE
+--     );
+--     TYPE billet_data_table IS TABLE OF billet_data INDEX BY PLS_INTEGER;
+--     affected_rows billet_data_table;
+--     -- BEFORE EACH ROW: Collect the affected rows
+--     BEFORE EACH ROW IS
+--     BEGIN
+--         affected_rows(affected_rows.COUNT + 1).id_commande := :NEW.id_commande;
+--         affected_rows(affected_rows.COUNT).date_debut_validite := :NEW.date_debut_validite;
+--     END BEFORE EACH ROW;
+--     -- AFTER STATEMENT: Perform the checks and updates
+--     AFTER STATEMENT IS
+--     BEGIN
+--         -- Use a temporary table to avoid duplicate rows
+--         FOR i IN affected_rows.FIRST .. affected_rows.LAST LOOP
+--             DECLARE
+--                 v_nb_billets NUMBER;
+--             BEGIN
+--                 -- Check the number of billets for the same commande and date
+--                 SELECT COUNT(*)
+--                 INTO v_nb_billets
+--                 FROM billet
+--                 WHERE id_commande = affected_rows(i).id_commande
+--                   AND date_debut_validite = affected_rows(i).date_debut_validite;
+--                 -- Apply the reduction if the threshold is reached
+--                 IF v_nb_billets >= 8 THEN
+--                     UPDATE billet
+--                     SET reduction = 'groupe' -- Réduction de groupe
+--                     WHERE id_commande = affected_rows(i).id_commande
+--                       AND date_debut_validite = affected_rows(i).date_debut_validite;
+--                 END IF;
+--             END;
+--         END LOOP;
+--     END AFTER STATEMENT;
+-- END trg_reduction_billet;
+-- /
 
-CREATE OR REPLACE TRIGGER trg_reduction_billet
-FOR INSERT OR UPDATE ON billet
-COMPOUND TRIGGER
-    TYPE billet_data IS RECORD (
-        id_commande NUMBER,
-        date_debut_validite DATE
-    );
-    TYPE billet_data_table IS TABLE OF billet_data INDEX BY PLS_INTEGER;
-    affected_rows billet_data_table;
-    -- BEFORE EACH ROW: Collect the affected rows
-    BEFORE EACH ROW IS
-    BEGIN
-        affected_rows(affected_rows.COUNT + 1).id_commande := :NEW.id_commande;
-        affected_rows(affected_rows.COUNT).date_debut_validite := :NEW.date_debut_validite;
-    END BEFORE EACH ROW;
-    -- AFTER STATEMENT: Perform the checks and updates
-    AFTER STATEMENT IS
-    BEGIN
-        -- Use a temporary table to avoid duplicate rows
-        FOR i IN affected_rows.FIRST .. affected_rows.LAST LOOP
-            DECLARE
-                v_nb_billets NUMBER;
-            BEGIN
-                -- Check the number of billets for the same commande and date
-                SELECT COUNT(*)
-                INTO v_nb_billets
-                FROM billet
-                WHERE id_commande = affected_rows(i).id_commande
-                  AND date_debut_validite = affected_rows(i).date_debut_validite;
-                -- Apply the reduction if the threshold is reached
-                IF v_nb_billets >= 8 THEN
-                    UPDATE billet
-                    SET reduction = 'groupe' -- Réduction de groupe
-                    WHERE id_commande = affected_rows(i).id_commande
-                      AND date_debut_validite = affected_rows(i).date_debut_validite;
-                END IF;
-            END;
-        END LOOP;
-    END AFTER STATEMENT;
-END trg_reduction_billet;
-/
+
 
 -- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date,
 -- C'est-à-dire qu'un billet "enfant" ne peut pas être acheté seul, il a besoin d'un accompagnateur.
@@ -399,11 +398,11 @@ INSERT INTO parc VALUES (29, 'Moonlit Adventures', DATE '2023-03-21', 75, 'Grèc
 INSERT INTO parc VALUES (30, 'Star Quest', DATE '2017-01-01', 120, 'Inde', 'Mumbai');
 
 -- Insertions tarif
-INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('annuel', 500, 365, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
+INSERT INTO tarif VALUES ('journalier', 50, 1, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('2 jours', 80, 2,  DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 500, 365,  DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('nocturne', 30, 1,  DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('noel', 60, 1,  DATE '2020-11-15', DATE '2021-12-31');
 
 -- Insertions clients
 INSERT INTO client VALUES (sequence_id_client.nextval, 'john.doe@example.com', 'Doe', 'John', '123 Main Street', '555-0101', 'Springfield', 'USA');
@@ -552,49 +551,49 @@ INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, TRUNC(SYSDATE, 'YEAR
 
 -- Insertions employés
 
-INSERT INTO employe VALUES (100000001, 1, 5, 'Dupont', 'Jean', '0123456789', 'jean.dupont@example.com', '10 Brühl Avenue', 'Brühl','Allemagne');
-INSERT INTO employe VALUES (100000002, 2, 12, 'Martin', 'Sophie', '0234567890', 'sophie.martin@example.com', '20 Rust Street', 'Rust','Allemagne');
-INSERT INTO employe VALUES (100000003, 3, 8, 'Bernard', 'Luc', '0345678901', 'luc.bernard@example.com', '30 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES (100000004, 4, 15, 'Durand', 'Emma', '0456789012', 'emma.durand@example.com', '40 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES (100000005, 1, 20, 'Moreau', 'Louis', '0567890123', 'louis.moreau@example.com', '50 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES (100000006, 2, 25, 'Roux', 'Julie', '0678901234', 'julie.roux@example.com', '60 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES (100000007, 3, 30, 'Petit', 'Paul', '0789012345', 'paul.petit@example.com', '70 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES (100000008, 4, 34, 'Richard', 'Claire', '0890123456', 'claire.richard@example.com', '80 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000009, 1, 2, 'Durand', 'Marc', '0901234567', 'marc.durand@example.com', '90 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000010, 2, 6, 'Dubois', 'Marie', '0112345678', 'marie.dubois@example.com', '100 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES (100000011, 3, 14, 'Blanc', 'Alice', '0123456789', 'alice.blanc@example.com', '110 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES (100000012, 4, 10, 'Fabre', 'Hugo', '0234567890', 'hugo.fabre@example.com', '120 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES (100000013, 1, 18, 'Lemoine', 'Sarah', '0345678901', 'sarah.lemoine@example.com', '130 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES (100000014, 2, 22, 'Noir', 'Lucas', '0456789012', 'lucas.noir@example.com', '140 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES (100000015, 3, 9, 'Clément', 'Chloe', '0567890123', 'chloe.clement@example.com', '150 Brühl Avenue', 'Brühl', 'Allemagne');
-INSERT INTO employe VALUES (100000016, 4, 11, 'Perrin', 'Thomas', '0678901234', 'thomas.perrin@example.com', '160 Rust Street', 'Rust', 'Allemagne');
-INSERT INTO employe VALUES (100000017, 1, 16, 'Leclerc', 'Emma', '0789012345', 'emma.leclerc@example.com', '170 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES (100000018, 2, 21, 'Lemoine', 'Victor', '0890123456', 'victor.lemoine@example.com', '180 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES (100000019, 3, 19, 'Simon', 'Anais', '0901234567', 'anais.simon@example.com', '190 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES (100000020, 4, 24, 'Michel', 'Arthur', '0112345678', 'arthur.michel@example.com', '200 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES (100000021, 1, 27, 'Garcia', 'Elisa', '0123456789', 'elisa.garcia@example.com', '210 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES (100000022, 2, 28, 'Fernandez', 'Nathan', '0234567890', 'nathan.fernandez@example.com', '220 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000023, 3, 3, 'Lopez', 'Camille', '0345678901', 'camille.lopez@example.com', '230 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000024, 4, 7, 'Morin', 'Julien', '0456789012', 'julien.morin@example.com', '240 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES (100000025, 1, 13, 'Morel', 'Celine', '0567890123', 'celine.morel@example.com', '250 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES (100000026, 2, 4, 'Guerin', 'Leo', '0678901234', 'leo.guerin@example.com', '260 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES (100000027, 3, 23, 'Fournier', 'Eva', '0789012345', 'eva.fournier@example.com', '270 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES (100000028, 4, 17, 'Girard', 'Adam', '0890123456', 'adam.girard@example.com', '280 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES (100000029, 1, 26, 'Andre', 'Lola', '0901234567', 'lola.andre@example.com', '290 Brühl Avenue', 'Brühl', 'Allemagne');
-INSERT INTO employe VALUES (100000030, 2, 31, 'Mercier', 'Noah', '0112345678', 'noah.mercier@example.com', '300 Rust Street', 'Rust', 'Allemagne');
-INSERT INTO employe VALUES (100000031, 3, 32, 'Dupuis', 'Alice', '0123456789', 'alice.dupuis@example.com', '310 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES (100000032, 4, 33, 'Lambert', 'Louis', '0234567890', 'louis.lambert@example.com', '320 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES (100000033, 1, 29, 'Fontaine', 'Sophie', '0345678901', 'sophie.fontaine@example.com', '330 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES (100000034, 2, 2, 'Roche', 'Emma', '0456789012', 'emma.roche@example.com', '340 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES (100000035, 3, 1, 'Chevalier', 'Hugo', '0567890123', 'hugo.chevalier@example.com', '350 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES (100000036, 4, 12, 'Francois', 'Paul', '0678901234', 'paul.francois@example.com', '360 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000037, 1, 18, 'Perrot', 'Lucas', '0789012345', 'lucas.perrot@example.com', '370 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES (100000038, 2, 20, 'Lemoine', 'Sarah', '0890123456', 'sarah.lemoine@example.com', '380 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES (100000039, 3, 14, 'Benoit', 'Julien', '0901234567', 'julien.benoit@example.com', '390 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES (100000040, 4, 10, 'Antoine', 'Eve', '0112345678', 'eve.antoine@example.com', '400 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES (100000041, 1, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES (100000042, 2, 21, 'Renaud', 'Victor', '0234567890', 'victor.renaud@example.com', '420 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES (100000043, 3, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT INTO employe VALUES (100000001, 5, 'Dupont', 'Jean', '0123456789', 'jean.dupont@example.com', '10 Brühl Avenue', 'Brühl','Allemagne');
+INSERT INTO employe VALUES (100000002, 12, 'Martin', 'Sophie', '0234567890', 'sophie.martin@example.com', '20 Rust Street', 'Rust','Allemagne');
+INSERT INTO employe VALUES (100000003, 8, 'Bernard', 'Luc', '0345678901', 'luc.bernard@example.com', '30 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000004, 15, 'Durand', 'Emma', '0456789012', 'emma.durand@example.com', '40 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000005, 20, 'Moreau', 'Louis', '0567890123', 'louis.moreau@example.com', '50 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000006, 25, 'Roux', 'Julie', '0678901234', 'julie.roux@example.com', '60 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000007, 30, 'Petit', 'Paul', '0789012345', 'paul.petit@example.com', '70 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000008, 34, 'Richard', 'Claire', '0890123456', 'claire.richard@example.com', '80 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000009, 2, 'Durand', 'Marc', '0901234567', 'marc.durand@example.com', '90 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000010, 6, 'Dubois', 'Marie', '0112345678', 'marie.dubois@example.com', '100 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000011, 14, 'Blanc', 'Alice', '0123456789', 'alice.blanc@example.com', '110 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000012, 10, 'Fabre', 'Hugo', '0234567890', 'hugo.fabre@example.com', '120 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000013, 18, 'Lemoine', 'Sarah', '0345678901', 'sarah.lemoine@example.com', '130 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000014, 22, 'Noir', 'Lucas', '0456789012', 'lucas.noir@example.com', '140 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000015, 9, 'Clément', 'Chloe', '0567890123', 'chloe.clement@example.com', '150 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT INTO employe VALUES (100000016, 11, 'Perrin', 'Thomas', '0678901234', 'thomas.perrin@example.com', '160 Rust Street', 'Rust', 'Allemagne');
+INSERT INTO employe VALUES (100000017, 16, 'Leclerc', 'Emma', '0789012345', 'emma.leclerc@example.com', '170 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000018, 21, 'Lemoine', 'Victor', '0890123456', 'victor.lemoine@example.com', '180 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000019, 19, 'Simon', 'Anais', '0901234567', 'anais.simon@example.com', '190 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000020, 24, 'Michel', 'Arthur', '0112345678', 'arthur.michel@example.com', '200 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000021, 27, 'Garcia', 'Elisa', '0123456789', 'elisa.garcia@example.com', '210 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000022, 28, 'Fernandez', 'Nathan', '0234567890', 'nathan.fernandez@example.com', '220 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000023, 3, 'Lopez', 'Camille', '0345678901', 'camille.lopez@example.com', '230 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000024, 7, 'Morin', 'Julien', '0456789012', 'julien.morin@example.com', '240 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000025, 13, 'Morel', 'Celine', '0567890123', 'celine.morel@example.com', '250 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000026, 4, 'Guerin', 'Leo', '0678901234', 'leo.guerin@example.com', '260 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000027, 23, 'Fournier', 'Eva', '0789012345', 'eva.fournier@example.com', '270 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000028, 17, 'Girard', 'Adam', '0890123456', 'adam.girard@example.com', '280 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000029, 26, 'Andre', 'Lola', '0901234567', 'lola.andre@example.com', '290 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT INTO employe VALUES (100000030, 31, 'Mercier', 'Noah', '0112345678', 'noah.mercier@example.com', '300 Rust Street', 'Rust', 'Allemagne');
+INSERT INTO employe VALUES (100000031, 32, 'Dupuis', 'Alice', '0123456789', 'alice.dupuis@example.com', '310 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000032, 33, 'Lambert', 'Louis', '0234567890', 'louis.lambert@example.com', '320 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000033, 29, 'Fontaine', 'Sophie', '0345678901', 'sophie.fontaine@example.com', '330 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000034, 2, 'Roche', 'Emma', '0456789012', 'emma.roche@example.com', '340 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000035, 1, 'Chevalier', 'Hugo', '0567890123', 'hugo.chevalier@example.com', '350 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000036, 12, 'Francois', 'Paul', '0678901234', 'paul.francois@example.com', '360 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000037, 18, 'Perrot', 'Lucas', '0789012345', 'lucas.perrot@example.com', '370 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000038, 20, 'Lemoine', 'Sarah', '0890123456', 'sarah.lemoine@example.com', '380 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000039, 14, 'Benoit', 'Julien', '0901234567', 'julien.benoit@example.com', '390 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000040, 10, 'Antoine', 'Eve', '0112345678', 'eve.antoine@example.com', '400 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000041, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000042, 21, 'Renaud', 'Victor', '0234567890', 'victor.renaud@example.com', '420 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000043, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
 
 -- Insertions contrats
 

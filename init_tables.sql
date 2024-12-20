@@ -86,6 +86,7 @@ CREATE TABLE tarif (
     nom_tarif VARCHAR2(100) PRIMARY KEY,
     prix NUMBER,
     duree_en_jour NUMBER,
+    reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
     constraint ch_tarif_prix CHECK (prix > 0),
@@ -177,7 +178,7 @@ CREATE TABLE contrat (
     salaire NUMBER,
     type VARCHAR2(50),
     CONSTRAINT chk_contrat_salaire_non_negatif CHECK (salaire > 0),
-    CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'stage', 'alternance', 'interim')),
+    CONSTRAINT chk_contrat_type_valide CHECK (type IN ('CDI', 'CDD', 'Stage', 'Alternance', 'Interim')),
     CONSTRAINT chk_contrat_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
     CONSTRAINT fk_contrat_employe FOREIGN KEY (numero_de_securite_sociale) REFERENCES employe(numero_de_securite_sociale)
 );
@@ -205,7 +206,7 @@ CREATE TABLE reduction (
     reduction NUMBER,
     date_debut DATE,
     date_fin DATE,
-    constraint chk_reduction CHECK (reduction > 0 and reduction < 1),
+    constraint chk_reduction CHECK (reduction >= 0 and reduction < 1),
     constraint chk_reduction_date_fin CHECK (date_fin >= date_debut or date_fin is null)
 );
 
@@ -295,10 +296,77 @@ begin
     end if;
 end;
 
+-- Trigger si une commande possède 8 billets ou plus sur un même date, tous les billets profitent d’une réduction
+-- de 20% sur leur prix.
+
+CREATE OR REPLACE TRIGGER trg_reduction_billet
+FOR INSERT OR UPDATE ON billet
+COMPOUND TRIGGER
+    TYPE billet_data IS RECORD (
+        id_commande NUMBER,
+        date_debut_validite DATE
+    );
+    TYPE billet_data_table IS TABLE OF billet_data INDEX BY PLS_INTEGER;
+    affected_rows billet_data_table;
+    -- BEFORE EACH ROW: Collect the affected rows
+    BEFORE EACH ROW IS
+    BEGIN
+        affected_rows(affected_rows.COUNT + 1).id_commande := :NEW.id_commande;
+        affected_rows(affected_rows.COUNT).date_debut_validite := :NEW.date_debut_validite;
+    END BEFORE EACH ROW;
+    -- AFTER STATEMENT: Perform the checks and updates
+    AFTER STATEMENT IS
+    BEGIN
+        -- Use a temporary table to avoid duplicate rows
+        FOR i IN affected_rows.FIRST .. affected_rows.LAST LOOP
+            DECLARE
+                v_nb_billets NUMBER;
+            BEGIN
+                -- Check the number of billets for the same commande and date
+                SELECT COUNT(*)
+                INTO v_nb_billets
+                FROM billet
+                WHERE id_commande = affected_rows(i).id_commande
+                  AND date_debut_validite = affected_rows(i).date_debut_validite;
+                -- Apply the reduction if the threshold is reached
+                IF v_nb_billets >= 8 THEN
+                    UPDATE billet
+                    SET reduction = 'groupe' -- Réduction de groupe
+                    WHERE id_commande = affected_rows(i).id_commande
+                      AND date_debut_validite = affected_rows(i).date_debut_validite;
+                END IF;
+            END;
+        END LOOP;
+    END AFTER STATEMENT;
+END trg_reduction_billet;
+/
+
+-- Trigger pour vérifier qu'un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date,
+-- C'est-à-dire qu'un billet "enfant" ne peut pas être acheté seul, il a besoin d'un accompagnateur.
+
+CREATE OR REPLACE TRIGGER trg_billet_enfant
+BEFORE INSERT OR UPDATE ON billet
+FOR EACH ROW
+DECLARE
+    normal_or_student_count NUMBER;
+BEGIN
+    IF :NEW.reduction = 'enfant' THEN
+        SELECT COUNT(*)
+        INTO normal_or_student_count
+        FROM billet
+        WHERE id_commande = :NEW.id_commande
+          AND date_debut_validite = :NEW.date_debut_validite
+          AND reduction IN ('normal', 'étudiant');
+        IF normal_or_student_count = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Un billet "enfant" nécessite un billet "normal" ou "étudiant" pour la même commande et la même date.');
+        END IF;
+    END IF;
+END;
+/
+
 -- Insertions
 
 -- Insertions parc
-
 INSERT INTO parc VALUES (1, 'Phantasialand', DATE '1967-04-30', 28, 'Allemagne', 'Brülh');
 INSERT INTO parc VALUES (2, 'Europa-Park', DATE '1975-07-12', 95, 'Allemagne', 'Rust');
 INSERT INTO parc VALUES (3, 'Disneyland Paris', DATE '1992-04-12', 2230, 'France', 'Marne-la-Vallée');
@@ -313,37 +381,31 @@ INSERT INTO parc VALUES (11, 'Disneyland Resort', DATE '1955-07-17', 486, 'État
 INSERT INTO parc VALUES (12, 'Universal Studios Hollywood', DATE '1964-07-15', 415, 'États-Unis', 'Los Angeles');
 INSERT INTO parc VALUES (13, 'Six Flags Magic Mountain', DATE '1971-05-29', 262, 'États-Unis', 'Valencia');
 INSERT INTO parc VALUES (14, 'Cedar Point', DATE '1870-05-17', 200, 'États-Unis', 'Sandusky');
-INSERT INTO parc VALUES (15, 'Hersheypark', DATE '1906-05-30', 121, 'États-Unis', 'Hershey');
-INSERT INTO parc VALUES (16, 'Canada''s Wonderland', DATE '1981-05-23', 134, 'Canada', 'Vaughan');
-INSERT INTO parc VALUES (17, 'La Ronde', DATE '1967-05-18', 59, 'Canada', 'Montréal');
-INSERT INTO parc VALUES (18, 'Eiftelling', DATE '1952-05-31', 72, 'Pays-Bas', 'Kaatsheuvel');
-INSERT INTO parc VALUES (19, 'Disneyland Shanghai', DATE '2016-06-16', 390, 'Chine', 'Shanghai');
-INSERT INTO parc VALUES (20, 'Tokyo Disneyland', DATE '1983-04-15', 115, 'Japon', 'Tokyo');
-INSERT INTO parc VALUES (21, 'Universal Studios Japan', DATE '2001-03-31', 54, 'Japon', 'Osaka');
-INSERT INTO parc VALUES (22, 'Everland', DATE '1976-04-20', 40, 'Corée du Sud', 'Yongin');
-INSERT INTO parc VALUES (23, 'Lotte World', DATE '1989-07-12', 29, 'Corée du Sud', 'Séoul');
-INSERT INTO parc VALUES (24, 'Ocean Park', DATE '1977-01-10', 91, 'Hong Kong', 'Wong Chuk Hang');
-INSERT INTO parc VALUES (25, 'Happy Valley Pékin', DATE '2006-07-09', 120, 'Chine', 'Pékin');
-INSERT INTO parc VALUES (26, 'Happy Valley Shenzhen', DATE '1998-07-20', 350, 'Chine', 'Shenzhen');
-INSERT INTO parc VALUES (27, 'Happy Valley Chengdu', DATE '2009-09-20', 100, 'Chine', 'Chengdu');
-INSERT INTO parc VALUES (28, 'Happy Valley Shanghai', DATE '2009-08-16', 100, 'Chine', 'Shanghai');
-INSERT INTO parc VALUES (29, 'Happy Valley Tianjin', DATE '2006-08-01', 100, 'Chine', 'Tianjin');
-INSERT INTO parc VALUES (30, 'Happy Valley Wuhan', DATE '2012-04-29', 100, 'Chine', 'Wuhan');
+INSERT INTO parc VALUES (15, 'Wonderland Adventure', DATE '2020-06-15', 120, 'Australie', 'Sydney');
+INSERT INTO parc VALUES (16, 'Galaxy World', DATE '2019-09-20', 150, 'Canada', 'Toronto');
+INSERT INTO parc VALUES (17, 'Dream Park', DATE '2021-07-01', 80, 'Japon', 'Tokyo');
+INSERT INTO parc VALUES (18, 'Adventure City', DATE '2018-03-10', 95, 'Chine', 'Shanghai');
+INSERT INTO parc VALUES (19, 'Future Fun', DATE '2017-11-05', 110, 'Corée du Sud', 'Séoul');
+INSERT INTO parc VALUES (20, 'Fantasy Land', DATE '2022-04-25', 90, 'Mexique', 'Mexico');
+INSERT INTO parc VALUES (21, 'Oceanic Thrills', DATE '2016-10-12', 130, 'Afrique du Sud', 'Cape Town');
+INSERT INTO parc VALUES (22, 'Extreme Rides', DATE '2015-08-18', 140, 'Russie', 'Moscou');
+INSERT INTO parc VALUES (23, 'Magic Horizons', DATE '2020-02-14', 100, 'Brésil', 'Rio de Janeiro');
+INSERT INTO parc VALUES (24, 'Luna Park', DATE '2014-05-20', 60, 'Italie', 'Rome');
+INSERT INTO parc VALUES (25, 'Skyline Adventures', DATE '2019-11-11', 150, 'Nouvelle-Zélande', 'Auckland');
+INSERT INTO parc VALUES (26, 'Velocity Valley', DATE '2021-09-09', 200, 'États-Unis', 'Las Vegas');
+INSERT INTO parc VALUES (27, 'Gravity Park', DATE '2018-12-25', 85, 'Espagne', 'Barcelone');
+INSERT INTO parc VALUES (28, 'Sunset Thrills', DATE '2016-06-06', 100, 'Portugal', 'Lisbonne');
+INSERT INTO parc VALUES (29, 'Moonlit Adventures', DATE '2023-03-21', 75, 'Grèce', 'Athènes');
+INSERT INTO parc VALUES (30, 'Star Quest', DATE '2017-01-01', 120, 'Inde', 'Mumbai');
 
 -- Insertions tarif
-INSERT INTO tarif VALUES ('journalier', 50, 1, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('2 jours', 80, 2, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('annuel', 500, 365, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('nocturne', 30, 1, DATE '2021-01-01', null);
-INSERT INTO tarif VALUES ('noel', 60, 1,DATE '2024-11-15', DATE '2024-12-31');
-INSERT INTO tarif VALUES ('halloween', 60, 1, DATE '2024-10-15', DATE '2024-11-14');
-INSERT INTO tarif VALUES ('fete de la musique', 55, 1, DATE '2024-06-21', DATE '2024-06-21');
-INSERT INTO tarif VALUES ('fete du travail', 32, 1, DATE '2024-05-01', DATE '2024-05-01');
-INSERT INTO tarif VALUES ('fete nationale', 40, 1, DATE '2024-07-14', DATE '2024-07-14');
-INSERT INTO tarif VALUES ('fete de la victoire', 40, 1, DATE '2024-05-08', DATE '2024-05-08');
+INSERT INTO tarif VALUES ('journalier', 50, 1, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('2 jours', 80, 2, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('annuel', 500, 365, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('nocturne', 30, 1, 0, DATE '2021-01-01', null);
+INSERT INTO tarif VALUES ('noel', 60, 1, 0, DATE '2020-11-15', DATE '2021-12-31');
 
 -- Insertions clients
-
 INSERT INTO client VALUES (sequence_id_client.nextval, 'john.doe@example.com', 'Doe', 'John', '123 Main Street', '555-0101', 'Springfield', 'USA');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'jane.smith@example.com', 'Smith', 'Jane', '456 Elm Street', '555-0202', 'Shelbyville', 'USA');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'emily.johnson@example.com', 'Johnson', 'Emily', '789 Oak Avenue', '555-0303', 'Ogdenville', 'Canada');
@@ -354,38 +416,26 @@ INSERT INTO client VALUES (sequence_id_client.nextval, 'lisa.taylor@example.com'
 INSERT INTO client VALUES (sequence_id_client.nextval, 'paul.martin@example.com', 'Martin', 'Paul', '246 Aspen Court', '555-0808', 'Ogdenville', 'Ireland');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'laura.thomas@example.com', 'Thomas', 'Laura', '357 Birch Way', '555-0909', 'North Haverbrook', 'France');
 INSERT INTO client VALUES (sequence_id_client.nextval, 'james.moore@example.com', 'Moore', 'James', '468 Cherry Street', '555-1010', 'Capital City', 'Germany');
-INSERT ALL
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'jean.dupont@email.com', 'Dupont', 'Jean', '123 Rue de Paris', '0123456789', 'Paris', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'marie.martin@email.com', 'Martin', 'Marie', '45 Avenue des Champs', '0234567890', 'Lyon', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'pierre.durand@email.com', 'Durand', 'Pierre', '78 Boulevard Victor Hugo', '0345678901', 'Marseille', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sophie.petit@email.com', 'Petit', 'Sophie', '12 Rue du Commerce', '0456789012', 'Toulouse', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'lucas.bernard@email.com', 'Bernard', 'Lucas', '34 Avenue Montaigne', '0567890123', 'Bordeaux', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'emma.thomas@email.com', 'Thomas', 'Emma', '56 Rue de la République', '0678901234', 'Nice', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'louis.richard@email.com', 'Richard', 'Louis', '89 Boulevard Haussmann', '0789012345', 'Nantes', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'clara.robert@email.com', 'Robert', 'Clara', '23 Rue Saint-Denis', '0890123456', 'Strasbourg', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'hugo.michel@email.com', 'Michel', 'Hugo', '67 Avenue Foch', '0901234567', 'Montpellier', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'lea.laurent@email.com', 'Laurent', 'Léa', '90 Rue de Rivoli', '0123456789', 'Lille', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'john.smith@email.com', 'Smith', 'John', '123 Main Street', '1234567890', 'London', 'Royaume-Uni')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'emma.wilson@email.com', 'Wilson', 'Emma', '45 Oxford Street', '2345678901', 'Manchester', 'Royaume-Uni')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'hans.muller@email.com', 'Müller', 'Hans', 'Hauptstraße 123', '3456789012', 'Berlin', 'Allemagne')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sofia.ferrari@email.com', 'Ferrari', 'Sofia', 'Via Roma 45', '4567890123', 'Rome', 'Italie')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'carlos.garcia@email.com', 'Garcia', 'Carlos', 'Calle Mayor 67', '5678901234', 'Madrid', 'Espagne')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'antonio.silva@email.com', 'Silva', 'Antonio', 'Rua Lisboa 89', '6789012345', 'Lisbonne', 'Portugal')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'yuki.tanaka@email.com', 'Tanaka', 'Yuki', 'Sakura Street 12', '7890123456', 'Tokyo', 'Japon')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'maria.santos@email.com', 'Santos', 'Maria', 'Av. Paulista 1000', '8901234567', 'São Paulo', 'Brésil')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'alex.brown@email.com', 'Brown', 'Alex', '789 Queen Street', '9012345678', 'Sydney', 'Australie')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'anna.kowalski@email.com', 'Kowalski', 'Anna', 'Nowy Świat 34', '0123456789', 'Varsovie', 'Pologne')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'thomas.lefebvre@email.com', 'Lefebvre', 'Thomas', '45 Rue du Marché', '0234567890', 'Paris', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'julie.moreau@email.com', 'Moreau', 'Julie', '67 Avenue des Lilas', '0345678901', 'Lyon', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'david.williams@email.com', 'Williams', 'David', '34 High Street', '4567890123', 'Birmingham', 'Royaume-Uni')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'laura.schmidt@email.com', 'Schmidt', 'Laura', 'Berliner Straße 56', '5678901234', 'Munich', 'Allemagne')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'marco.rossi@email.com', 'Rossi', 'Marco', 'Via Venezia 78', '6789012345', 'Milan', 'Italie')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'sarah.dubois@email.com', 'Dubois', 'Sarah', '23 Rue des Roses', '0456789012', 'Toulouse', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'paul.lemaire@email.com', 'Lemaire', 'Paul', '89 Avenue Victor Hugo', '0567890123', 'Nice', 'France')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'james.taylor@email.com', 'Taylor', 'James', '56 Baker Street', '7890123456', 'London', 'Royaume-Uni')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'julia.wagner@email.com', 'Wagner', 'Julia', 'Frankfurter Allee 90', '8901234567', 'Hamburg', 'Allemagne')
-    INTO client (id_client, email, nom, prenom, adresse, telephone, ville, pays) VALUES (sequence_id_client.nextval, 'giuseppe.conti@email.com', 'Conti', 'Giuseppe', 'Via Napoli 45', '9012345678', 'Florence', 'Italie')
-SELECT * FROM dual;
+INSERT INTO client VALUES (sequence_id_client.nextval, 'ana.robin@example.com', 'Robin', 'Ana', '10 Rue Jean Moulin', '0756123487', 'Grenoble', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'marc.garcia@example.com', 'Garcia', 'Marc', '11 Rue de Provence', '0623456790', 'Dijon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'elise.benoit@example.com', 'Benoit', 'Elise', '12 Rue des Carmes', '0645236789', 'Le Havre', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'nathan.morel@example.com', 'Morel', 'Nathan', '13 Rue du Marché', '0634236789', 'Toulon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'ines.bernard@example.com', 'Bernard', 'Ines', '14 Rue Saint-Honoré', '0612234789', 'Saint-Étienne', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'emilie.martinez@example.com', 'Martinez', 'Emilie', '15 Rue de la République', '0698123456', 'Rennes', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'mathieu.fabre@example.com', 'Fabre', 'Mathieu', '16 Rue de Metz', '0623456789', 'Aix-en-Provence', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'lea.clement@example.com', 'Clément', 'Lea', '17 Rue des Peupliers', '0678236789', 'Montpellier', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'juliette.david@example.com', 'David', 'Juliette', '18 Rue des Acacias', '0654123678', 'Orléans', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'maxime.renard@example.com', 'Renard', 'Maxime', '19 Avenue de l''Europe', '0687345678', 'Clermont-Ferrand', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'emilie.dupuis@example.com', 'Dupuis', 'Emilie', '20 Rue des Lilas', '0645123789', 'Nancy', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'vincent.robert@example.com', 'Robert', 'Vincent', '21 Rue des Tulipes', '0698123478', 'Metz', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'sophie.lopez@example.com', 'Lopez', 'Sophie', '22 Boulevard Gambetta', '0634234789', 'Tours', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'lucas.navarro@example.com', 'Navarro', 'Lucas', '23 Rue des Mimosas', '0687345789', 'Angers', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'melanie.dumont@example.com', 'Dumont', 'Melanie', '24 Avenue Jules Ferry', '0623456897', 'Perpignan', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'etienne.guillaume@example.com', 'Guillaume', 'Etienne', '25 Rue de Lorraine', '0654123489', 'Limoges', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'florence.roger@example.com', 'Roger', 'Florence', '26 Rue de l''Abbaye', '0678123467', 'Béziers', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'quentin.lefevre@example.com', 'Lefevre', 'Quentin', '27 Rue de la Liberté', '0689234789', 'Pau', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'helene.durieux@example.com', 'Durieux', 'Helene', '28 Rue des Vignes', '0612234689', 'Avignon', 'France');
+INSERT INTO client VALUES (sequence_id_client.nextval, 'thibault.rousseau@example.com', 'Rousseau', 'Thibault', '29 Rue des Marronniers', '0698123467', 'Valence', 'France');
 
 -- Insertions attractions
 
@@ -443,210 +493,332 @@ insert into travaux values (sequence_id_travaux.nextval, 7, DATE '2021-01-01', D
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2021-02-01', DATE '2021-02-10', 'Révision matérielle', 12000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2021-03-01', DATE '2021-03-15', 'Maintenance annuelle', 8000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2021-04-05', DATE '2021-04-20', 'Test de sécurité', 15000, 'terminé', 'SafeCheck Pro');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2021-05-01', DATE '2021-05-10', 'Réparation urgente', 20000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2021-05-01', DATE '2021-05-10', 'Réparation urgente', 20000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2021-06-01', DATE '2021-06-12', 'Amélioration technique', 18000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2021-07-10', DATE '2021-07-25', 'Maintenance annuelle', 10000, 'prévu', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2021-08-01', DATE '2021-08-20', 'Test de sécurité', 16000, 'en cours', 'SafeCheck Pro');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2021-08-01', DATE '2021-08-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2021-09-01', DATE '2021-09-15', 'Révision matérielle', 14000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2021-10-01', DATE '2021-10-20', 'Réparation urgente', 22000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2021-10-01', DATE '2021-10-20', 'Réparation urgente', 22000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2021-11-01', DATE '2021-11-15', 'Amélioration technique', 17000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 11, DATE '2021-12-01', DATE '2021-12-10', 'Maintenance annuelle', 12000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 12, DATE '2021-02-15', DATE '2021-03-01', 'Réparation urgente', 25000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 12, DATE '2021-02-15', DATE '2021-03-01', 'Réparation urgente', 25000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 13, DATE '2021-03-10', DATE '2021-03-25', 'Test de sécurité', 20000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 14, DATE '2021-04-15', DATE '2021-05-05', 'Amélioration technique', 30000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 15, DATE '2021-05-10', DATE '2021-05-25', 'Maintenance annuelle', 9000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 16, DATE '2021-06-15', DATE '2021-07-01', 'Réparation urgente', 24000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 16, DATE '2021-06-15', DATE '2021-07-01', 'Réparation urgente', 24000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 17, DATE '2021-07-20', DATE '2021-08-10', 'Révision matérielle', 15000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 18, DATE '2021-08-25', DATE '2021-09-10', 'Test de sécurité', 12000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 19, DATE '2021-10-01', DATE '2021-10-15', 'Amélioration technique', 21000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 20, DATE '2021-11-10', DATE '2021-11-25', 'Maintenance annuelle', 10000, 'prévu', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 21, DATE '2021-01-10', DATE '2021-01-20', 'Test de sécurité', 13000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 22, DATE '2021-02-05', DATE '2021-02-15', 'Révision matérielle', 17000, 'terminé', 'Reparator 3000');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 23, DATE '2021-03-05', DATE '2021-03-18', 'Maintenance annuelle', 12000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 23, DATE '2021-03-05', DATE '2021-03-18', 'Maintenance annuelle', 12000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 24, DATE '2021-04-05', DATE '2021-04-15', 'Réparation urgente', 25000, 'prévu', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 25, DATE '2021-05-10', DATE '2021-05-20', 'Amélioration technique', 30000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 26, DATE '2021-06-15', DATE '2021-06-25', 'Test de sécurité', 22000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 27, DATE '2021-07-01', DATE '2021-07-10', 'Maintenance annuelle', 15000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 28, DATE '2021-08-05', DATE '2021-08-15', 'Révision matérielle', 16000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 29, DATE '2021-09-10', DATE '2021-09-20', 'Maintenance annuelle', 18000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 29, DATE '2021-09-10', DATE '2021-09-20', 'Maintenance annuelle', 18000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 30, DATE '2021-10-05', DATE '2021-10-15', 'Test de sécurité', 25000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 31, DATE '2021-11-15', DATE '2021-11-25', 'Réparation urgente', 26000, 'prévu', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 32, DATE '2021-12-01', DATE '2021-12-12', 'Maintenance annuelle', 14000, 'terminé', 'TechnoPatch');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 33, DATE '2021-01-05', DATE '2021-01-15', 'Révision matérielle', 16000, 'en cours', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 33, DATE '2021-01-05', DATE '2021-01-15', 'Révision matérielle', 16000, 'terminé', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 34, DATE '2021-02-10', DATE '2021-02-20', 'Test de sécurité', 18000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2023-01-10', DATE '2023-01-20', 'Inspection de sécurité', 12000, 'terminé', 'SafeCheck Pro');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2024-05-15', DATE '2024-06-01', 'Réparation majeure', 35000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, DATE '2024-05-15', DATE '2025-06-01', 'Réparation majeure', 35000, 'en cours', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2023-03-01', DATE '2023-03-15', 'Amélioration technique', 20000, 'terminé', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 2, DATE '2024-07-10', DATE '2024-07-25', 'Maintenance annuelle', 15000, 'prévu', 'FixIt Fast');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2024-02-20', DATE '2024-03-05', 'Révision matérielle', 14000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 3, DATE '2023-11-01', DATE '2023-11-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2023-06-01', DATE '2023-06-15', 'Réparation urgente', 25000, 'terminé', 'RepairHub');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2024-09-01', DATE '2024-09-15', 'Amélioration technique', 28000, 'en cours', 'TechnoPatch');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 4, DATE '2024-09-01', DATE '2025-09-15', 'Amélioration technique', 28000, 'en cours', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2023-08-01', DATE '2023-08-10', 'Maintenance annuelle', 10000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, DATE '2024-10-15', DATE '2024-10-30', 'Inspection de sécurité', 12000, 'prévu', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2023-05-01', DATE '2023-05-10', 'Révision matérielle', 11000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2024-11-01', DATE '2024-11-10', 'Réparation urgente', 18000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 6, DATE '2024-11-01', DATE '2025-11-10', 'Réparation urgente', 18000, 'en cours', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2023-04-15', DATE '2023-04-30', 'Test de sécurité', 15000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 7, DATE '2024-12-01', DATE '2024-12-15', 'Amélioration technique', 22000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2023-09-01', DATE '2023-09-10', 'Maintenance annuelle', 9000, 'terminé', 'Reparator 3000');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 8, DATE '2024-03-01', DATE '2024-03-15', 'Révision matérielle', 14000, 'terminé', 'FixIt Fast');
-INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2023-02-01', DATE '2023-02-10', 'Réparation urgente', 30000, 'en cours', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2023-02-01', DATE '2023-02-10', 'Réparation urgente', 30000, 'terminé', 'RepairHub');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 9, DATE '2024-04-10', DATE '2024-04-20', 'Test de sécurité', 16000, 'terminé', 'SafeCheck Pro');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2023-12-01', DATE '2023-12-10', 'Amélioration technique', 25000, 'prévu', 'TechnoPatch');
 INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 10, DATE '2024-06-10', DATE '2024-06-20', 'Maintenance annuelle', 12000, 'terminé', 'Reparator 3000');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, TRUNC(SYSDATE, 'YEAR') - INTERVAL '10' MONTH, TRUNC(SYSDATE, 'YEAR') - INTERVAL '9' MONTH, 'Révision annuelle', 15000, 'terminé', 'FixIt Fast');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 1, TRUNC(SYSDATE, 'YEAR') - INTERVAL '6' MONTH, TRUNC(SYSDATE, 'YEAR') - INTERVAL '5' MONTH, 'Test de sécurité', 12000, 'terminé', 'SafeCheck Pro');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, TRUNC(SYSDATE, 'YEAR') - INTERVAL '11' MONTH, TRUNC(SYSDATE, 'YEAR') - INTERVAL '10' MONTH, 'Maintenance préventive', 18000, 'terminé', 'RepairHub');
+INSERT INTO travaux VALUES (sequence_id_travaux.nextval, 5, TRUNC(SYSDATE, 'YEAR') - INTERVAL '3' MONTH, TRUNC(SYSDATE, 'YEAR') - INTERVAL '2' MONTH, 'Amélioration technique', 20000, 'terminé', 'TechnoPatch');
+
 
 -- Insertions employés
 
-INSERT INTO employe VALUES(100000001, 1, 5, 'Dupont', 'Jean', '0123456789', 'jean.dupont@example.com', '10 Brühl Avenue', 'Brühl','Allemagne');
-INSERT INTO employe VALUES(100000002, 2, 12, 'Martin', 'Sophie', '0234567890', 'sophie.martin@example.com', '20 Rust Street', 'Rust','Allemagne');
-INSERT INTO employe VALUES(100000003, 3, 8, 'Bernard', 'Luc', '0345678901', 'luc.bernard@example.com', '30 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES(100000004, 4, 15, 'Durand', 'Emma', '0456789012', 'emma.durand@example.com', '40 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES(100000005, 5, 20, 'Moreau', 'Louis', '0567890123', 'louis.moreau@example.com', '50 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES(100000006, 6, 25, 'Roux', 'Julie', '0678901234', 'julie.roux@example.com', '60 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES(100000007, 7, 30, 'Petit', 'Paul', '0789012345', 'paul.petit@example.com', '70 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES(100000008, 8, 34, 'Richard', 'Claire', '0890123456', 'claire.richard@example.com', '80 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000009, 9, 2, 'Durand', 'Marc', '0901234567', 'marc.durand@example.com', '90 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000010, 10, 6, 'Dubois', 'Marie', '0112345678', 'marie.dubois@example.com', '100 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES(100000011, 11, 14, 'Blanc', 'Alice', '0123456789', 'alice.blanc@example.com', '110 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES(100000012, 12, 10, 'Fabre', 'Hugo', '0234567890', 'hugo.fabre@example.com', '120 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES(100000013, 13, 18, 'Lemoine', 'Sarah', '0345678901', 'sarah.lemoine@example.com', '130 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES(100000014, 14, 22, 'Noir', 'Lucas', '0456789012', 'lucas.noir@example.com', '140 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES  (100000015, 1, 9, 'Clément', 'Chloe', '0567890123', 'chloe.clement@example.com', '150 Brühl Avenue', 'Brühl', 'Allemagne');
-INSERT INTO employe VALUES(100000016, 2, 11, 'Perrin', 'Thomas', '0678901234', 'thomas.perrin@example.com', '160 Rust Street', 'Rust', 'Allemagne');
-INSERT INTO employe VALUES(100000017, 3, 16, 'Leclerc', 'Emma', '0789012345', 'emma.leclerc@example.com', '170 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES(100000018, 4, 21, 'Lemoine', 'Victor', '0890123456', 'victor.lemoine@example.com', '180 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES (100000019, 5, 19, 'Simon', 'Anais', '0901234567', 'anais.simon@example.com', '190 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES(100000020, 6, 24, 'Michel', 'Arthur', '0112345678', 'arthur.michel@example.com', '200 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES(100000021, 7, 27, 'Garcia', 'Elisa', '0123456789', 'elisa.garcia@example.com', '210 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES(100000022, 8, 28, 'Fernandez', 'Nathan', '0234567890', 'nathan.fernandez@example.com', '220 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000023, 9, 3, 'Lopez', 'Camille', '0345678901', 'camille.lopez@example.com', '230 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000024, 10, 7, 'Morin', 'Julien', '0456789012', 'julien.morin@example.com', '240 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES(100000025, 11, 13, 'Morel', 'Celine', '0567890123', 'celine.morel@example.com', '250 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES(100000026, 12, 4, 'Guerin', 'Leo', '0678901234', 'leo.guerin@example.com', '260 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES(100000027, 13, 23, 'Fournier', 'Eva', '0789012345', 'eva.fournier@example.com', '270 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES(100000028, 14, 17, 'Girard', 'Adam', '0890123456', 'adam.girard@example.com', '280 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES(100000029, 1, 26, 'Andre', 'Lola', '0901234567', 'lola.andre@example.com', '290 Brühl Avenue', 'Brühl', 'Allemagne');
-INSERT INTO employe VALUES(100000030, 2, 31, 'Mercier', 'Noah', '0112345678', 'noah.mercier@example.com', '300 Rust Street', 'Rust', 'Allemagne');
-INSERT INTO employe VALUES(100000031, 3, 32, 'Dupuis', 'Alice', '0123456789', 'alice.dupuis@example.com', '310 Disneyland Road', 'Marne-la-Vallée', 'France');
-INSERT INTO employe VALUES(100000032, 4, 33, 'Lambert', 'Louis', '0234567890', 'louis.lambert@example.com', '320 Asterix Boulevard', 'Plailly', 'France');
-INSERT INTO employe VALUES(100000033, 5, 29, 'Fontaine', 'Sophie', '0345678901', 'sophie.fontaine@example.com', '330 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
-INSERT INTO employe VALUES(100000034, 6, 2, 'Roche', 'Emma', '0456789012', 'emma.roche@example.com', '340 Walibi Lane', 'Les Avenières', 'France');
-INSERT INTO employe VALUES(100000035, 7, 1, 'Chevalier', 'Hugo', '0567890123', 'hugo.chevalier@example.com', '350 Sud-Ouest Drive', 'Roquefort', 'France');
-INSERT INTO employe VALUES(100000036, 8, 12, 'Francois', 'Paul', '0678901234', 'paul.francois@example.com', '360 Alton Towers Road', 'Alton', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000037, 9, 18, 'Perrot', 'Lucas', '0789012345', 'lucas.perrot@example.com', '370 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
-INSERT INTO employe VALUES(100000038, 10, 20, 'Lemoine', 'Sarah', '0890123456', 'sarah.lemoine@example.com', '380 PortAventura Street', 'Salou', 'Espagne');
-INSERT INTO employe VALUES(100000039, 11, 14, 'Benoit', 'Julien', '0901234567', 'julien.benoit@example.com', '390 Disney Drive', 'Anaheim', 'États-Unis');
-INSERT INTO employe VALUES(100000040, 12, 10, 'Antoine', 'Eve', '0112345678', 'eve.antoine@example.com', '400 Universal Boulevard', 'Los Angeles', 'États-Unis');
-INSERT INTO employe VALUES(100000041, 13, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis');
-INSERT INTO employe VALUES(100000042, 14, 21, 'Renaud', 'Victor', '0234567890', 'victor.renaud@example.com', '420 Cedar Avenue', 'Sandusky', 'États-Unis');
-INSERT INTO employe VALUES(100000043, 1, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
-INSERT ALL
-    INTO employe VALUES (195012345678912, 3, 15, 'Martin', 'Sophie', '0123456789', 'sophie.martin@parc.fr', '123 Rue des Fleurs', 'Paris', 'France')
-
-    INTO employe VALUES (189012345678923, 7, 22, 'Dubois', 'Pierre', '0234567890', 'pierre.dubois@parc.fr', '45 Avenue des Champs', 'Paris', 'France')
-
-    INTO employe VALUES (192012345678934, 12, 35, 'Leroy', 'Marie', '0345678901', 'marie.leroy@parc.fr', '78 Boulevard Victor Hugo', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (194012345678945, 18, 42, 'Bernard', 'Thomas', '0456789012', 'thomas.bernard@parc.fr', '12 Rue du Commerce', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (193012345678956, 22, 48, 'Moreau', 'Julie', '0567890123', 'julie.moreau@parc.fr', '34 Avenue Montaigne', 'Paris', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (196012345678967, 5, 10, 'Petit', 'Lucas', '0678901234', 'lucas.petit@parc.fr', '56 Rue de la République', 'Marseille', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (191012345678978, 9, 25, 'Robert', 'Emma', '0789012345', 'emma.robert@parc.fr', '89 Boulevard Haussmann', 'Marseille', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (190012345678989, 14, 38, 'Richard', 'Antoine', '0890123456', 'antoine.richard@parc.fr', '23 Rue Saint-Denis', 'Toulouse', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (195012345678990, 20, 45, 'Michel', 'Clara', '0901234567', 'clara.michel@parc.fr', '67 Avenue Foch', 'Toulouse', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (193012345679001, 25, 50, 'Laurent', 'Hugo', '0112345678', 'hugo.laurent@parc.fr', '90 Rue de Rivoli', 'Paris', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (194012345679012, 2, 5, 'Lefebvre', 'Sarah', '0123456789', 'sarah.lefebvre@parc.fr', '12 Rue du Parc', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (192012345679023, 6, 18, 'Garcia', 'David', '0234567890', 'david.garcia@parc.fr', '45 Avenue des Roses', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (191012345679034, 11, 28, 'Roux', 'Laura', '0345678901', 'laura.roux@parc.fr', '78 Boulevard des Lys', 'Marseille', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (196012345679045, 16, 33, 'Bonnet', 'Nicolas', '0456789012', 'nicolas.bonnet@parc.fr', '34 Rue des Pins', 'Marseille', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (195012345679056, 21, 47, 'Muller', 'Charlotte', '0567890123', 'charlotte.muller@parc.fr', '56 Avenue du Parc', 'Toulouse', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (193012345679067, 4, 8, 'Faure', 'Maxime', '0678901234', 'maxime.faure@parc.fr', '89 Rue des Ormes', 'Paris', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (194012345679078, 8, 20, 'Andre', 'Camille', '0789012345', 'camille.andre@parc.fr', '23 Boulevard des Arts', 'Paris', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (192012345679089, 13, 30, 'Mercier', 'Alexandre', '0890123456', 'alexandre.mercier@parc.fr', '67 Avenue des Lilas', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (191012345679090, 17, 40, 'Blanc', 'Léa', '0901234567', 'lea.blanc@parc.fr', '90 Rue du Château', 'Lyon', 'France')
-
-    INTO employe (numero_de_securite_sociale, id_parc, id_attraction, nom, prenom, telephone, email, adresse, ville, pays)
-    VALUES (190012345679101, 23, 49, 'Guerin', 'Nathan', '0112345678', 'nathan.guerin@parc.fr', '12 Boulevard Maritime', 'Marseille', 'France')
-SELECT * FROM dual;
+INSERT INTO employe VALUES (100000001, 1, 5, 'Dupont', 'Jean', '0123456789', 'jean.dupont@example.com', '10 Brühl Avenue', 'Brühl','Allemagne');
+INSERT INTO employe VALUES (100000002, 2, 12, 'Martin', 'Sophie', '0234567890', 'sophie.martin@example.com', '20 Rust Street', 'Rust','Allemagne');
+INSERT INTO employe VALUES (100000003, 3, 8, 'Bernard', 'Luc', '0345678901', 'luc.bernard@example.com', '30 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000004, 4, 15, 'Durand', 'Emma', '0456789012', 'emma.durand@example.com', '40 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000005, 1, 20, 'Moreau', 'Louis', '0567890123', 'louis.moreau@example.com', '50 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000006, 2, 25, 'Roux', 'Julie', '0678901234', 'julie.roux@example.com', '60 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000007, 3, 30, 'Petit', 'Paul', '0789012345', 'paul.petit@example.com', '70 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000008, 4, 34, 'Richard', 'Claire', '0890123456', 'claire.richard@example.com', '80 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000009, 1, 2, 'Durand', 'Marc', '0901234567', 'marc.durand@example.com', '90 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000010, 2, 6, 'Dubois', 'Marie', '0112345678', 'marie.dubois@example.com', '100 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000011, 3, 14, 'Blanc', 'Alice', '0123456789', 'alice.blanc@example.com', '110 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000012, 4, 10, 'Fabre', 'Hugo', '0234567890', 'hugo.fabre@example.com', '120 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000013, 1, 18, 'Lemoine', 'Sarah', '0345678901', 'sarah.lemoine@example.com', '130 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000014, 2, 22, 'Noir', 'Lucas', '0456789012', 'lucas.noir@example.com', '140 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000015, 3, 9, 'Clément', 'Chloe', '0567890123', 'chloe.clement@example.com', '150 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT INTO employe VALUES (100000016, 4, 11, 'Perrin', 'Thomas', '0678901234', 'thomas.perrin@example.com', '160 Rust Street', 'Rust', 'Allemagne');
+INSERT INTO employe VALUES (100000017, 1, 16, 'Leclerc', 'Emma', '0789012345', 'emma.leclerc@example.com', '170 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000018, 2, 21, 'Lemoine', 'Victor', '0890123456', 'victor.lemoine@example.com', '180 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000019, 3, 19, 'Simon', 'Anais', '0901234567', 'anais.simon@example.com', '190 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000020, 4, 24, 'Michel', 'Arthur', '0112345678', 'arthur.michel@example.com', '200 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000021, 1, 27, 'Garcia', 'Elisa', '0123456789', 'elisa.garcia@example.com', '210 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000022, 2, 28, 'Fernandez', 'Nathan', '0234567890', 'nathan.fernandez@example.com', '220 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000023, 3, 3, 'Lopez', 'Camille', '0345678901', 'camille.lopez@example.com', '230 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000024, 4, 7, 'Morin', 'Julien', '0456789012', 'julien.morin@example.com', '240 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000025, 1, 13, 'Morel', 'Celine', '0567890123', 'celine.morel@example.com', '250 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000026, 2, 4, 'Guerin', 'Leo', '0678901234', 'leo.guerin@example.com', '260 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000027, 3, 23, 'Fournier', 'Eva', '0789012345', 'eva.fournier@example.com', '270 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000028, 4, 17, 'Girard', 'Adam', '0890123456', 'adam.girard@example.com', '280 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000029, 1, 26, 'Andre', 'Lola', '0901234567', 'lola.andre@example.com', '290 Brühl Avenue', 'Brühl', 'Allemagne');
+INSERT INTO employe VALUES (100000030, 2, 31, 'Mercier', 'Noah', '0112345678', 'noah.mercier@example.com', '300 Rust Street', 'Rust', 'Allemagne');
+INSERT INTO employe VALUES (100000031, 3, 32, 'Dupuis', 'Alice', '0123456789', 'alice.dupuis@example.com', '310 Disneyland Road', 'Marne-la-Vallée', 'France');
+INSERT INTO employe VALUES (100000032, 4, 33, 'Lambert', 'Louis', '0234567890', 'louis.lambert@example.com', '320 Asterix Boulevard', 'Plailly', 'France');
+INSERT INTO employe VALUES (100000033, 1, 29, 'Fontaine', 'Sophie', '0345678901', 'sophie.fontaine@example.com', '330 Futuroscope Way', 'Chasseneuil-du-Poitou', 'France');
+INSERT INTO employe VALUES (100000034, 2, 2, 'Roche', 'Emma', '0456789012', 'emma.roche@example.com', '340 Walibi Lane', 'Les Avenières', 'France');
+INSERT INTO employe VALUES (100000035, 3, 1, 'Chevalier', 'Hugo', '0567890123', 'hugo.chevalier@example.com', '350 Sud-Ouest Drive', 'Roquefort', 'France');
+INSERT INTO employe VALUES (100000036, 4, 12, 'Francois', 'Paul', '0678901234', 'paul.francois@example.com', '360 Alton Towers Road', 'Alton', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000037, 1, 18, 'Perrot', 'Lucas', '0789012345', 'lucas.perrot@example.com', '370 Thorpe Park Lane', 'Chertsey', 'Royaume-Uni');
+INSERT INTO employe VALUES (100000038, 2, 20, 'Lemoine', 'Sarah', '0890123456', 'sarah.lemoine@example.com', '380 PortAventura Street', 'Salou', 'Espagne');
+INSERT INTO employe VALUES (100000039, 3, 14, 'Benoit', 'Julien', '0901234567', 'julien.benoit@example.com', '390 Disney Drive', 'Anaheim', 'États-Unis');
+INSERT INTO employe VALUES (100000040, 4, 10, 'Antoine', 'Eve', '0112345678', 'eve.antoine@example.com', '400 Universal Boulevard', 'Los Angeles', 'États-Unis');
+INSERT INTO employe VALUES (100000041, 1, 30, 'Navarro', 'Chloe', '0123456789', 'chloe.navarro@example.com', '410 Six Flags Road', 'Valencia', 'États-Unis');
+INSERT INTO employe VALUES (100000042, 2, 21, 'Renaud', 'Victor', '0234567890', 'victor.renaud@example.com', '420 Cedar Avenue', 'Sandusky', 'États-Unis');
+INSERT INTO employe VALUES (100000043, 3, 9, 'Lemoine', 'Anais', '0345678901', 'anais.lemoine@example.com', '430 Brühl Avenue', 'Brühl', 'Allemagne');
 
 -- Insertions contrats
 
+INSERT INTO contrat VALUES (1, 100000001, DATE '2022-01-01', SYSDATE + INTERVAL '2' MONTH, 'Technicien', 2500, 'CDI');
+INSERT INTO contrat VALUES (2, 100000002, DATE '2021-05-01', DATE '2023-05-01', 'Manager', 3500, 'CDD');
+INSERT INTO contrat VALUES (3, 100000003, DATE '2020-09-01', SYSDATE + INTERVAL '1' MONTH, 'Agent d''entretien', 1800, 'CDI');
+INSERT INTO contrat VALUES (4, 100000004, DATE '2022-06-15', DATE '2023-06-15', 'Responsable attraction', 3200, 'Stage');
+INSERT INTO contrat VALUES (5, 100000005, DATE '2023-02-01', NULL, 'Administrateur', 4000, 'Alternance');
+INSERT INTO contrat VALUES (6, 100000006, DATE '2021-09-01', DATE '2022-09-01', 'Technicien', 2700, 'CDD');
+INSERT INTO contrat VALUES (7, 100000007, DATE '2023-03-01', NULL, 'Manager', 3600, 'CDI');
+INSERT INTO contrat VALUES (8, 100000008, DATE '2020-07-01', DATE '2023-07-01', 'Agent d''entretien', 1900, 'CDD');
+INSERT INTO contrat VALUES (9, 100000009, DATE '2022-05-01', NULL, 'Responsable attraction', 3400, 'CDI');
+INSERT INTO contrat VALUES (10, 100000010, DATE '2023-01-15', DATE '2023-12-31', 'Administrateur', 4100, 'Stage');
+INSERT INTO contrat VALUES (11, 100000011, DATE '2021-11-01', DATE '2022-11-01', 'Technicien', 2600, 'CDD');
+INSERT INTO contrat VALUES (12, 100000012, DATE '2022-10-01', DATE '2024-10-01', 'Manager', 3700, 'CDI');
+INSERT INTO contrat VALUES (13, 100000013, DATE '2021-06-15', DATE '2023-06-15', 'Agent d''entretien', 2000, 'CDD');
+INSERT INTO contrat VALUES (14, 100000014, DATE '2022-03-01', DATE '2022-12-31', 'Responsable attraction', 3300, 'Stage');
+INSERT INTO contrat VALUES (15, 100000015, DATE '2020-09-01', NULL, 'Administrateur', 4200, 'Alternance');
+INSERT INTO contrat VALUES (16, 100000016, DATE '2023-02-01', DATE '2024-02-01', 'Technicien', 2800, 'CDI');
+INSERT INTO contrat VALUES (17, 100000017, DATE '2022-01-01', DATE '2023-01-01', 'Manager', 3800, 'CDD');
+INSERT INTO contrat VALUES (18, 100000018, DATE '2021-08-01', NULL, 'Agent d''entretien', 2100, 'CDI');
+INSERT INTO contrat VALUES (19, 100000019, DATE '2022-11-01', DATE '2024-11-01', 'Responsable attraction', 3500, 'CDD');
+INSERT INTO contrat VALUES (20, 100000020, DATE '2020-04-01', DATE '2022-04-01', 'Administrateur', 4300, 'CDI');
+INSERT INTO contrat VALUES (21, 100000021, DATE '2021-10-01', DATE '2022-10-01', 'Technicien', 2400, 'CDD');
+INSERT INTO contrat VALUES (22, 100000022, DATE '2022-06-01', DATE '2024-06-01', 'Manager', 3900, 'Alternance');
+INSERT INTO contrat VALUES (23, 100000023, DATE '2020-12-01', DATE '2023-12-01', 'Agent d''entretien', 2200, 'CDI');
+INSERT INTO contrat VALUES (24, 100000024, DATE '2021-07-01', DATE '2022-07-01', 'Responsable attraction', 3100, 'Stage');
+INSERT INTO contrat VALUES (25, 100000025, DATE '2022-03-01', NULL, 'Administrateur', 4400, 'CDI');
+INSERT INTO contrat VALUES (26, 100000026, DATE '2023-01-15', DATE '2023-12-15', 'Technicien', 2900, 'CDD');
+INSERT INTO contrat VALUES (27, 100000027, DATE '2020-09-01', DATE '2022-09-01', 'Manager', 4000, 'CDI');
+INSERT INTO contrat VALUES (28, 100000028, DATE '2021-11-01', DATE '2023-11-01', 'Agent d''entretien', 2300, 'CDD');
+INSERT INTO contrat VALUES (29, 100000029, DATE '2022-02-01', DATE '2024-02-01', 'Responsable attraction', 3600, 'Alternance');
+INSERT INTO contrat VALUES (30, 100000030, DATE '2021-08-01', NULL, 'Administrateur', 4500, 'CDI');
+INSERT INTO contrat VALUES (31, 100000031, DATE '2022-03-01', DATE '2024-03-01', 'Technicien', 2500, 'CDI');
+INSERT INTO contrat VALUES (32, 100000032, DATE '2023-01-15', NULL, 'Responsable attraction', 3200, 'Alternance');
+INSERT INTO contrat VALUES (33, 100000033, DATE '2022-06-01', DATE '2023-06-01', 'Manager', 3500, 'CDD');
+INSERT INTO contrat VALUES (34, 100000034, DATE '2021-09-01', DATE '2023-09-01', 'Agent d''entretien', 2000, 'CDD');
+INSERT INTO contrat VALUES (35, 100000035, DATE '2022-11-01', DATE '2024-11-01', 'Administrateur', 4000, 'CDI');
+INSERT INTO contrat VALUES (36, 100000036, DATE '2020-07-01', DATE '2022-07-01', 'Technicien', 2800, 'CDD');
+INSERT INTO contrat VALUES (37, 100000037, DATE '2023-05-01', NULL, 'Responsable attraction', 3300, 'CDI');
+INSERT INTO contrat VALUES (38, 100000038, DATE '2021-08-15', DATE '2023-08-15', 'Manager', 3700, 'CDD');
+INSERT INTO contrat VALUES (39, 100000039, DATE '2022-12-01', DATE '2023-12-01', 'Agent d''entretien', 2200, 'Alternance');
+INSERT INTO contrat VALUES (40, 100000040, DATE '2020-04-01', NULL, 'Administrateur', 4500, 'CDI');
+INSERT INTO contrat VALUES (41, 100000041, DATE '2023-02-01', DATE '2024-02-01', 'Technicien', 2700, 'CDD');
+INSERT INTO contrat VALUES (42, 100000042, DATE '2022-09-01', DATE '2023-09-01', 'Responsable attraction', 3600, 'CDD');
+INSERT INTO contrat VALUES (43, 100000043, DATE '2021-03-01', NULL, 'Manager', 3900, 'CDI');
+
 -- Insertions commandes
 
--- Insertions tourniquets
--- DECLARE
---     i INTEGER := 0;
---     max_id INTEGER := 0;
--- BEGIN
---     SELECT max(id_attraction) INTO max_id FROM attraction;
---
---     WHILE i < 1000 LOOP
---         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
---         VALUES (
---             DBMS_RANDOM.VALUE(1, max_id), -- id_attraction entre 1 et 100
---             TO_DATE(
---                 TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
---                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
---                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
---                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
---                 'YYYY-MM-DD HH24:MI:SS'
---             ), -- Heure entre 09:00:00 et 19:59:59
---             CASE
---                 WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
---                 ELSE 'sortie'
---             END
---         );
---         i := i + 1;
---     END LOOP;
---     COMMIT;
--- END;
--- /
+INSERT INTO commande VALUES (1, 12, DATE '2023-11-01');
+INSERT INTO commande VALUES (2, 7, DATE '2023-11-02');
+INSERT INTO commande VALUES (3, 23, DATE '2023-11-03');
+INSERT INTO commande VALUES (4, 5, DATE '2023-11-04');
+INSERT INTO commande VALUES (5, 19, DATE '2023-11-05');
+INSERT INTO commande VALUES (6, 15, DATE '2023-11-06');
+INSERT INTO commande VALUES (7, 8, DATE '2023-11-07');
+INSERT INTO commande VALUES (8, 27, DATE '2022-11-08');
+INSERT INTO commande VALUES (9, 1, DATE '2023-11-09');
+INSERT INTO commande VALUES (10, 29, DATE '2023-11-10');
+INSERT INTO commande VALUES (11, 6, DATE '2023-11-11');
+INSERT INTO commande VALUES (12, 18, DATE '2023-11-12');
+INSERT INTO commande VALUES (13, 14, DATE '2023-11-13');
+INSERT INTO commande VALUES (14, 21, DATE '2023-11-14');
+INSERT INTO commande VALUES (15, 9, DATE '2023-11-15');
+INSERT INTO commande VALUES (16, 3, DATE '2023-11-16');
+INSERT INTO commande VALUES (17, 10, DATE '2023-11-17');
+INSERT INTO commande VALUES (18, 22, DATE '2023-11-18');
+INSERT INTO commande VALUES (19, 26, DATE '2023-11-19');
+INSERT INTO commande VALUES (20, 4, DATE '2023-11-20');
+INSERT INTO commande VALUES (21, 25, DATE '2023-11-21');
+INSERT INTO commande VALUES (22, 2, DATE '2023-11-22');
+INSERT INTO commande VALUES (23, 17, DATE '2023-11-23');
+INSERT INTO commande VALUES (24, 13, DATE '2023-11-24');
+INSERT INTO commande VALUES (25, 19, DATE '2023-11-25');
+INSERT INTO commande VALUES (26, 11, DATE '2023-11-26');
+INSERT INTO commande VALUES (27, 29, DATE '2023-11-27');
+INSERT INTO commande VALUES (28, 16, DATE '2023-11-28');
+INSERT INTO commande VALUES (29, 8, DATE '2023-11-29');
+INSERT INTO commande VALUES (30, 20, DATE '2023-11-30');
+INSERT INTO commande VALUES (31, 5, DATE '2023-12-01');
+INSERT INTO commande VALUES (32, 24, DATE '2023-12-02');
+INSERT INTO commande VALUES (33, 12, DATE '2023-12-03');
+INSERT INTO commande VALUES (34, 28, DATE '2023-12-04');
+INSERT INTO commande VALUES (35, 7, DATE '2023-12-05');
+INSERT INTO commande VALUES (36, 2, DATE '2023-12-06');
+INSERT INTO commande VALUES (37, 9, DATE '2023-12-07');
+INSERT INTO commande VALUES (38, 15, DATE '2023-12-08');
+INSERT INTO commande VALUES (39, 1, DATE '2023-12-09');
+INSERT INTO commande VALUES (40, 19, DATE '2023-12-10');
+INSERT INTO commande VALUES (41, 14, DATE '2023-12-11');
+INSERT INTO commande VALUES (42, 22, DATE '2023-12-12');
+INSERT INTO commande VALUES (43, 3, DATE '2023-12-13');
+INSERT INTO commande VALUES (44, 10, DATE '2023-12-14');
+INSERT INTO commande VALUES (45, 18, DATE '2023-12-15');
+INSERT INTO commande VALUES (46, 21, DATE '2023-12-16');
+INSERT INTO commande VALUES (47, 27, DATE '2023-12-17');
+INSERT INTO commande VALUES (48, 6, DATE '2023-12-18');
+INSERT INTO commande VALUES (49, 11, DATE '2023-12-19');
+INSERT INTO commande VALUES (50, 29, DATE '2023-12-20');
 
--- Insertions dans la table billets
+-- Insertions tourniquets
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
+        VALUES (
+    TRUNC(DBMS_RANDOM.VALUE(1, (SELECT MAX(id_attraction) FROM attraction) + 1)),
+            TO_DATE(
+                TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
+                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
+                'YYYY-MM-DD HH24:MI:SS'
+            ), -- Heure entre 09:00:00 et 19:59:59
+            CASE
+                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
+                ELSE 'sortie'
+            END
+        );
+        i := i + 1;
+    END LOOP;
+    COMMIT;
+END;
+/
 
 -- Insertions réductions
 
-INSERT INTO reduction VALUES ('étudiant', 0.3, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('étudiant', 0.1, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('senior', 0.05, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('famille', 0.15, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('groupe', 0.2, DATE '2021-01-01', NULL);
-INSERT INTO reduction VALUES ('enfant', 0.1, DATE '2021-01-01', NULL);
+INSERT INTO reduction VALUES ('enfant', 0.5, DATE '2021-01-01', NULL);
 INSERT INTO reduction VALUES ('normal', 0, DATE '2021-01-01', NULL);
+
+-- Insertions dans la table billets
+
+INSERT INTO billet VALUES (1, 1, 12, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (2, 2, 17, DATE '2023-12-05', DATE '2023-12-06', '2 jours', 'étudiant', 0);
+INSERT INTO billet VALUES (3, 3, 21, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'famille', 0);
+INSERT INTO billet VALUES (4, 4, 4, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'senior', 1);
+INSERT INTO billet VALUES (71, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'normal', 0);
+INSERT INTO billet VALUES (5, 1, 30, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'enfant', 0);
+INSERT INTO billet VALUES (6, 2, 43, DATE '2023-12-25', DATE '2023-12-26', 'annuel', 'étudiant', 0);
+INSERT INTO billet VALUES (7, 3, 8, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (78, 3, 8, DATE '2022-12-01', DATE '2022-12-01', 'journalier', 'famille', 1);
+INSERT INTO billet VALUES (8, 4, 10, DATE '2023-12-04', DATE '2023-12-05', '2 jours', 'groupe', 1);
+INSERT INTO billet VALUES (9, 1, 14, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'senior', 0);
+INSERT INTO billet VALUES (10, 2, 20, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (11, 3, 29, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (12, 4, 1, DATE '2023-12-18', DATE '2023-12-19', 'annuel', 'étudiant', 1);
+INSERT INTO billet VALUES (13, 1, 7, DATE '2023-12-11', DATE '2023-12-11', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (14, 2, 13, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 1);
+INSERT INTO billet VALUES (15, 3, 28, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'famille', 0);
+INSERT INTO billet values (72, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'étudiant', 0);
+INSERT INTO billet VALUES (16, 4, 42, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
+INSERT INTO billet VALUES (17, 1, 35, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'étudiant', 1);
+INSERT INTO billet VALUES (18, 2, 6, DATE '2023-12-12', DATE '2023-12-13', 'annuel', 'groupe', 0);
+INSERT INTO billet VALUES (19, 3, 19, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (20, 4, 15, DATE '2023-12-05', DATE '2023-12-05', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (79, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'normal', 0);
+INSERT INTO billet VALUES (21, 1, 25, DATE '2023-12-07', DATE '2023-12-07', 'noel', 'enfant', 0);
+INSERT INTO billet VALUES (22, 2, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'étudiant', 0);
+INSERT INTO billet VALUES (23, 3, 3, DATE '2023-12-23', DATE '2023-12-23', 'nocturne', 'groupe', 1);
+INSERT INTO billet VALUES (24, 4, 22, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'normal', 0);
+INSERT INTO billet VALUES (25, 1, 38, DATE '2023-12-06', DATE '2023-12-06', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (26, 2, 10, DATE '2023-12-12', DATE '2023-12-13', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (27, 3, 47, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'étudiant', 1);
+INSERT INTO billet VALUES (73, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'étudiant', 0);
+INSERT INTO billet VALUES (28, 4, 32, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'enfant', 0);
+INSERT INTO billet VALUES (29, 1, 2, DATE '2023-12-27', DATE '2023-12-27', 'nocturne', 'groupe', 0);
+INSERT INTO billet VALUES (30, 2, 40, DATE '2023-12-29', DATE '2023-12-30', 'annuel', 'famille', 1);
+INSERT INTO billet VALUES (31, 3, 48, DATE '2023-12-01', DATE '2023-12-01', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (32, 4, 5, DATE '2023-12-07', DATE '2023-12-07', '2 jours', 'famille', 0);
+INSERT INTO billet VALUES (33, 1, 13, DATE '2023-12-15', DATE '2023-12-15', 'noel', 'senior', 1);
+INSERT INTO billet VALUES (34, 2, 37, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'groupe', 0);
+INSERT INTO billet VALUES (35, 3, 9, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (74, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (36, 4, 16, DATE '2023-12-03', DATE '2023-12-03', 'annuel', 'enfant', 1);
+INSERT INTO billet VALUES (37, 1, 20, DATE '2023-12-10', DATE '2023-12-11', '2 jours', 'étudiant', 0);
+INSERT INTO billet VALUES (38, 2, 24, DATE '2023-12-18', DATE '2023-12-18', 'noel', 'normal', 0);
+INSERT INTO billet VALUES (39, 3, 11, DATE '2023-12-28', DATE '2023-12-28', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (40, 4, 41, DATE '2023-12-04', DATE '2023-12-04', 'nocturne', 'groupe', 1);
+INSERT INTO billet VALUES (41, 1, 18, DATE '2023-12-07', DATE '2023-12-07', 'annuel', 'senior', 0);
+INSERT INTO billet VALUES (42, 2, 28, DATE '2023-12-14', DATE '2023-12-14', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (43, 3, 19, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'famille', 1);
+INSERT INTO billet VALUES (44, 4, 8, DATE '2023-12-09', DATE '2023-12-10', 'noel', 'étudiant', 0);
+INSERT INTO billet VALUES (45, 1, 26, DATE '2023-12-13', DATE '2023-12-13', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (80, 2, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'normal', 0);
+INSERT INTO billet VALUES (46, 3, 44, DATE '2023-12-20', DATE '2023-12-20', 'nocturne', 'enfant', 0);
+INSERT INTO billet VALUES (47, 4, 15, DATE '2023-12-26', DATE '2023-12-27', 'annuel', 'famille', 1);
+INSERT INTO billet VALUES (48, 1, 2, DATE '2023-12-06', DATE '2023-12-07', '2 jours', 'normal', 0);
+INSERT INTO billet VALUES (49, 2, 12, DATE '2023-12-15', DATE '2023-12-15', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (50, 3, 39, DATE '2023-12-29', DATE '2023-12-29', 'noel', 'étudiant', 1);
+INSERT INTO billet VALUES (51, 4, 31, DATE '2023-12-22', DATE '2023-12-22', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (75, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
+INSERT INTO billet VALUES (52, 1, 23, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'enfant', 0);
+INSERT INTO billet VALUES (53, 2, 48, DATE '2023-12-10', DATE '2023-12-10', 'noel', 'normal', 1);
+INSERT INTO billet VALUES (54, 3, 33, DATE '2023-12-20', DATE '2023-12-20', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (55, 4, 6, DATE '2023-12-30', DATE '2023-12-30', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (56, 1, 5, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'groupe', 1);
+INSERT INTO billet VALUES (57, 2, 14, DATE '2023-12-02', DATE '2023-12-03', '2 jours', 'normal', 0);
+INSERT INTO billet VALUES (58, 3, 27, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'senior', 0);
+INSERT INTO billet VALUES (59, 4, 45, DATE '2023-12-14', DATE '2023-12-14', 'noel', 'famille', 0);
+INSERT INTO billet VALUES (60, 1, 35, DATE '2023-12-29', DATE '2023-12-29', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (61, 2, 25, DATE '2023-12-01', DATE '2023-12-02', '2 jours', 'étudiant', 0);
+INSERT INTO billet VALUES (76, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'normal', 0);
+INSERT INTO billet VALUES (62, 3, 30, DATE '2023-12-10', DATE '2023-12-11', 'nocturne', 'enfant', 0);
+INSERT INTO billet VALUES (63, 4, 40, DATE '2023-12-18', DATE '2023-12-18', 'annuel', 'senior', 1);
+INSERT INTO billet VALUES (64, 1, 9, DATE '2023-12-07', DATE '2023-12-07', 'journalier', 'famille', 0);
+INSERT INTO billet VALUES (65, 2, 37, DATE '2023-12-25', DATE '2023-12-25', 'noel', 'groupe', 0);
+INSERT INTO billet VALUES (66, 3, 41, DATE '2023-12-22', DATE '2023-12-23', '2 jours', 'normal', 0);
+INSERT INTO billet VALUES (67, 4, 46, DATE '2023-12-04', DATE '2023-12-04', 'journalier', 'senior', 1);
+INSERT INTO billet VALUES (68, 1, 3, DATE '2023-12-15', DATE '2023-12-15', 'nocturne', 'famille', 0);
+INSERT INTO billet VALUES (69, 2, 10, DATE '2023-12-19', DATE '2023-12-19', 'annuel', 'étudiant', 0);
+insert into billet values (77, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'normal', 0);
+INSERT INTO billet VALUES (70, 3, 20, DATE '2023-12-30', DATE '2023-12-30', 'journalier', 'enfant', 0);
+
 
 -- Droits et vues
 
 -- Vues
 
+-- Liste des travaux réalisés pour chaque attraction.
 CREATE OR REPLACE VIEW vue_travaux_par_attraction AS
 SELECT
     a.nom AS nom_attraction,
@@ -657,6 +829,7 @@ SELECT
 FROM travaux t
 JOIN attraction a ON t.id_attraction = a.id_attraction;
 
+-- Liste des revenus totaux générés par chaque parc, en tenant compte des tarifs appliqués et des réductions associées.
 CREATE OR REPLACE VIEW vue_revenus_parc AS
 SELECT
     p.nom AS nom_parc,
@@ -667,6 +840,7 @@ LEFT JOIN tarif t ON b.tarif = t.nom_tarif
 LEFT JOIN reduction r ON b.reduction = r.nom_reduction
 GROUP BY p.nom;
 
+-- Liste des clients avec leur nombre de commandes et la date de leur dernière commande.
 CREATE OR REPLACE VIEW vue_clients_commandes AS
 SELECT
     c.id_client,
@@ -678,6 +852,7 @@ FROM client c
 LEFT JOIN commande co ON c.id_client = co.id_client
 GROUP BY c.id_client, c.nom, c.prenom, c.email;
 
+-- Liste des travaux actuellement en cours, incluant le nom de l'attraction, la description des travaux, les dates de début et fin, et leur coût.
 CREATE OR REPLACE VIEW vue_travaux_en_cours AS
 SELECT
     a.nom AS nom_attraction,
@@ -689,6 +864,7 @@ FROM travaux t
 JOIN attraction a ON t.id_attraction = a.id_attraction
 WHERE t.etat = 'en cours';
 
+-- Liste des attractions avec leurs statistiques, triées par capacité horaire décroissante.
 CREATE OR REPLACE VIEW vue_statistiques_attractions AS
 SELECT
     nom,
@@ -699,6 +875,7 @@ SELECT
 FROM attraction
 ORDER BY capacite_horaire DESC;
 
+-- Liste des employés affectés à chaque attraction, incluant leurs coordonnées.
 CREATE OR REPLACE VIEW vue_employes_par_attraction AS
 SELECT
     a.nom AS nom_attraction,
@@ -708,6 +885,7 @@ SELECT
 FROM employe e
 JOIN attraction a ON e.id_attraction = a.id_attraction;
 
+-- Liste des employés et leurs salaires par parc, avec le type de contrat associé.
 CREATE OR REPLACE VIEW vue_salaire_employes_parc AS
 SELECT
     p.nom AS nom_parc,
@@ -718,6 +896,7 @@ FROM employe e
 JOIN parc p ON e.id_parc = p.id_parc
 JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale;
 
+-- Liste des billets d'un client spécifique, filtrée par son email.
 CREATE OR REPLACE VIEW vue_mes_billets AS
 SELECT
     b.id_billet,
@@ -858,15 +1037,27 @@ JOIN contrat c ON e.numero_de_securite_sociale = c.numero_de_securite_sociale
 WHERE c.date_fin >= SYSDATE AND c.date_fin <= SYSDATE + INTERVAL '3' MONTH;
 
 -- 11 S’il n’y avait pas de tarif étudiant, combien chaque parc aurait-il gagné en plus ?
-SELECT p.NOM AS nom_parc,SUM(CASE WHEN r.nom_reduction = 'étudiant' THEN t.prix ELSE 0 END) AS gain_si_tarif_etudiant_non_existant
+SELECT
+    p.nom AS nom_parc,
+    SUM(
+        CASE
+            -- Si la réduction est "étudiant", on calcule la différence entre le prix avec réduction normale et celui avec réduction étudiante.
+            WHEN b.reduction = 'étudiant' THEN
+                t.prix * (1 - COALESCE(r_normal.reduction, 0)) -- Prix recalculé avec réduction normale
+                - t.prix * (1 - r.reduction) -- Prix actuel avec réduction étudiante
+            ELSE 0 -- Pour les autres réductions, aucun gain supplémentaire n'est ajouté
+        END
+    ) AS gain_si_tarif_etudiant_non_existant -- Résultat final : gain total supplémentaire pour chaque parc
 FROM parc p
 JOIN billet b ON p.id_parc = b.id_parc
-JOIN reduction r ON b.tarif = r.nom_reduction
 JOIN tarif t ON b.tarif = t.nom_tarif
-GROUP BY
-    p.NOM;
+JOIN reduction r ON b.reduction = r.nom_reduction
+LEFT JOIN reduction r_normal ON r_normal.nom_reduction = 'normal'
+GROUP BY p.nom;
 
--- 12 Quel parc a le plus grand nombre d'attractions avec des inversions ?
+
+
+-- 12 Liste des parcs avec le nombre d'attractions ayant des inversions, triés par ordre décroissant
 SELECT p.nom, COUNT(a.id_attraction) AS nb_attractions_inversions
 FROM parc p
 JOIN attraction a ON p.id_parc = a.id_parc
@@ -895,21 +1086,31 @@ WHERE c.salaire > (
 );
 
 -- 15 Quels sont pour chaque parc les trois attractions qui ont coûté le plus en termes de maintenance ?
-SELECT p.nom, a.nom, t.cout
-FROM parc p
-JOIN attraction a ON p.id_parc = a.id_parc
-JOIN travaux t ON a.id_attraction = t.id_attraction
-ORDER BY t.cout DESC
-FETCH FIRST 3 ROWS ONLY;
+SELECT parc_nom, attraction_nom, cout
+FROM (
+    SELECT p.nom AS parc_nom, a.nom AS attraction_nom, t.cout,
+           ROW_NUMBER() OVER (PARTITION BY p.nom ORDER BY t.cout DESC) AS rank
+    FROM parc p
+    JOIN attraction a ON p.id_parc = a.id_parc
+    JOIN travaux t ON a.id_attraction = t.id_attraction
+)
+WHERE rank <= 3
+ORDER BY parc_nom, rank;
 
 -- 16 Pour chaque parc, quelle attraction a eu le plus de travaux ?
-SELECT p.nom, a.nom, COUNT(t.id_travaux) AS nb_travaux
-FROM parc p
-JOIN attraction a ON p.id_parc = a.id_parc
-JOIN travaux t ON a.id_attraction = t.id_attraction
-GROUP BY p.nom, a.nom
-ORDER BY nb_travaux DESC
-FETCH FIRST ROW ONLY;
+SELECT parc_nom, attraction_nom, nb_travaux
+FROM (
+    SELECT p.nom AS parc_nom,
+           a.nom AS attraction_nom,
+           COUNT(t.id_travaux) AS nb_travaux,
+           ROW_NUMBER() OVER (PARTITION BY p.nom ORDER BY COUNT(t.id_travaux) DESC) AS rank
+    FROM parc p
+    JOIN attraction a ON p.id_parc = a.id_parc
+    JOIN travaux t ON a.id_attraction = t.id_attraction
+    GROUP BY p.nom, a.nom
+)
+WHERE rank = 1
+ORDER BY parc_nom;
 
 -- 17 Pour chaque parc, quelle est la proportion de billets non utilisés ?
 SELECT p.nom, COUNT(b.id_billet) / (SELECT COUNT(id_billet) FROM billet) AS proportion_billets_non_utilises
@@ -934,11 +1135,19 @@ ORDER BY nb_entrees DESC
 FETCH FIRST ROW ONLY;
 
 -- 20 Pour chaque parc, quel est le visiteur le plus fidèle ?
-SELECT p.nom, c.nom, c.prenom, COUNT(b.id_billet) AS nb_billets
-FROM parc p
-JOIN billet b ON p.id_parc = b.id_parc
-JOIN commande co ON b.id_commande = co.id_commande
-JOIN client c ON co.id_client = c.id_client
-GROUP BY p.nom, c.nom, c.prenom
-ORDER BY nb_billets DESC
-FETCH FIRST ROW ONLY;
+SELECT parc_fideles.nom_parc, parc_fideles.nom_client, parc_fideles.prenom_client, parc_fideles.nb_billets
+FROM (
+    SELECT
+        p.nom AS nom_parc,
+        c.nom AS nom_client,
+        c.prenom AS prenom_client,
+        COUNT(b.id_billet) AS nb_billets,
+        RANK() OVER (PARTITION BY p.nom ORDER BY COUNT(b.id_billet) DESC) AS rang_client
+    FROM parc p
+    JOIN billet b ON p.id_parc = b.id_parc
+    JOIN commande co ON b.id_commande = co.id_commande
+    JOIN client c ON co.id_client = c.id_client
+    GROUP BY p.nom, c.nom, c.prenom
+) parc_fideles
+WHERE parc_fideles.rang_client = 1;
+

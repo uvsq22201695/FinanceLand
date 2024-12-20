@@ -648,30 +648,100 @@ INSERT INTO commande VALUES (49, 11, DATE '2023-12-19');
 INSERT INTO commande VALUES (50, 29, DATE '2023-12-20');
 
 -- Insertions tourniquets
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
-        VALUES (
-    TRUNC(DBMS_RANDOM.VALUE(1, (SELECT MAX(id_attraction) FROM attraction) + 1)),
-            TO_DATE(
-                TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
-                TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
-                'YYYY-MM-DD HH24:MI:SS'
-            ), -- Heure entre 09:00:00 et 19:59:59
-            CASE
-                WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
-                ELSE 'sortie'
-            END
-        );
-        i := i + 1;
-    END LOOP;
-    COMMIT;
-END;
-/
+
+-- Code PL/SQL pour générer beaucoup de données dans la table tourniquet
+
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie)
+--         VALUES (
+--     TRUNC(DBMS_RANDOM.VALUE(1, (SELECT MAX(id_attraction) FROM attraction) + 1)),
+--             TO_DATE(
+--                 TO_CHAR(TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, 365)), 'YYYY-MM-DD') || ' ' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(9, 20)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00') || ':' ||
+--                 TO_CHAR(TRUNC(DBMS_RANDOM.VALUE(0, 60)), '00'),
+--                 'YYYY-MM-DD HH24:MI:SS'
+--             ), -- Heure entre 09:00:00 et 19:59:59
+--             CASE
+--                 WHEN DBMS_RANDOM.VALUE(0, 1) < 0.6 THEN 'entrée'
+--                 ELSE 'sortie'
+--             END
+--         );
+--         i := i + 1;
+--     END LOOP;
+--     COMMIT;
+-- END;
+-- /
+
+-- Sinon INSERT
+
+-- Attraction 1: Plusieurs entrées/sorties
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 09:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (1, TO_DATE('2023-12-01 10:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 2: Une seule entrée
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (2, TO_DATE('2023-12-01 11:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Attraction 3: Pas d'entrée
+-- Pas d'INSERT pour cette attraction.
+
+-- Attraction 4: Une entrée/sortie
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (4, TO_DATE('2023-12-01 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (4, TO_DATE('2023-12-01 12:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 5: Nombreuses entrées/sorties
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 09:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 09:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 10:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (5, TO_DATE('2023-12-01 11:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Attraction 6: Pas d'entrée
+-- Pas d'INSERT pour cette attraction.
+
+-- Attraction 7: Peu de passages
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (7, TO_DATE('2023-12-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (7, TO_DATE('2023-12-01 14:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 8: Une seule sortie
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (8, TO_DATE('2023-12-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+
+-- Attraction 9: Beaucoup d'entrées
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 09:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 09:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (9, TO_DATE('2023-12-01 10:35:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
+-- Répétition avec d'autres attractions
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (10, TO_DATE('2023-12-01 09:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (10, TO_DATE('2023-12-01 09:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (11, TO_DATE('2023-12-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (12, TO_DATE('2023-12-01 10:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (12, TO_DATE('2023-12-01 11:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'sortie');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (13, TO_DATE('2023-12-01 11:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (14, TO_DATE('2023-12-01 12:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (15, TO_DATE('2023-12-01 12:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (16, TO_DATE('2023-12-01 13:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (17, TO_DATE('2023-12-01 13:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (18, TO_DATE('2023-12-01 14:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (19, TO_DATE('2023-12-01 14:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (20, TO_DATE('2023-12-01 15:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (21, TO_DATE('2023-12-01 15:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (22, TO_DATE('2023-12-01 16:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (23, TO_DATE('2023-12-01 16:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (24, TO_DATE('2023-12-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (25, TO_DATE('2023-12-01 17:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (26, TO_DATE('2023-12-01 18:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (27, TO_DATE('2023-12-01 18:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (28, TO_DATE('2023-12-01 19:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (29, TO_DATE('2023-12-01 19:50:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+INSERT INTO tourniquet (id_attraction, heure, entree_ou_sortie) VALUES (30, TO_DATE('2023-12-01 20:20:00', 'YYYY-MM-DD HH24:MI:SS'), 'entrée');
+
 
 -- Insertions réductions
 

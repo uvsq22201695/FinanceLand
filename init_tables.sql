@@ -593,9 +593,9 @@ INSERT INTO employe VALUES (100000043, 3, 9, 'Lemoine', 'Anais', '0345678901', '
 
 -- Insertions contrats
 
-INSERT INTO contrat VALUES (1, 100000001, DATE '2022-01-01', DATE '2024-01-01', 'Technicien', 2500, 'CDI');
+INSERT INTO contrat VALUES (1, 100000001, DATE '2022-01-01', SYSDATE + INTERVAL '2' MONTH, 'Technicien', 2500, 'CDI');
 INSERT INTO contrat VALUES (2, 100000002, DATE '2021-05-01', DATE '2023-05-01', 'Manager', 3500, 'CDD');
-INSERT INTO contrat VALUES (3, 100000003, DATE '2020-09-01', NULL, 'Agent d''entretien', 1800, 'CDI');
+INSERT INTO contrat VALUES (3, 100000003, DATE '2020-09-01', SYSDATE + INTERVAL '1' MONTH, 'Agent d''entretien', 1800, 'CDI');
 INSERT INTO contrat VALUES (4, 100000004, DATE '2022-06-15', DATE '2023-06-15', 'Responsable attraction', 3200, 'Stage');
 INSERT INTO contrat VALUES (5, 100000005, DATE '2023-02-01', NULL, 'Administrateur', 4000, 'Alternance');
 INSERT INTO contrat VALUES (6, 100000006, DATE '2021-09-01', DATE '2022-09-01', 'Technicien', 2700, 'CDD');

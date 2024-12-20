@@ -428,4 +428,3 @@ BEGIN DATA
 89, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
 90, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
 91, 4, 50, DATE '2023-12-01', DATE '2023-12-02', 'journalier', 'normal', 1
-
